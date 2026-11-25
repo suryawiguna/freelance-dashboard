@@ -17,7 +17,7 @@ Project Firebase: `freelance-dashboard-control` (https://freelance-dashboard-con
 ```bash
 npm run emulators       # Firestore :8180 + Auth :9199 (Java 21). Bukan 8080/9099 supaya tidak bentrok dengan kasir
 npm run seed:emulator   # isi emulator dengan data awal (scripts/seed-data.json = Lampiran A)
-npm run dev:emulator    # aplikasi di :3100 ke emulator, ada tombol "Masuk sebagai pemilik (emulator)"
+npm run dev:emulator    # aplikasi di :3000 ke emulator, ada tombol "Masuk sebagai pemilik (emulator)"
 npm run dev             # ke project asli bila .env.local terisi, selain itu ke emulator
 npm run lint            # tsc + scripts/check.mjs
 npm test                # modul murni (src/**/*.test.ts)
@@ -45,5 +45,7 @@ npm run deploy          # lint + tes + build + hosting + firestore.rules. Butuh 
 - `src/data/DataContext.tsx`: satu `onSnapshot` per koleksi untuk seluruh aplikasi (lewat `repo.watch`). Dokumen dinormalisasi oleh `domain/records.ts` (field hilang diisi nilai kosong).
 - Penulisan tidak di-`await` sampai server menjawab (offline persistence): panel langsung tertutup, error ditampilkan lewat toast.
 - Panel edit = `?edit=<id>` atau `?edit=baru` di URL; membuka panel menambah entri history, jadi Back menutupnya. Ringkasan membuka panel di halaman lain lewat `openEdit(id, path)`.
+- Komponen inti tanpa pustaka (`src/components/`): `Popover` (portal + position fixed, posisi dari `lib/position.ts`), `Select` (combobox WAI-ARIA), `DatePicker` (grid dari `lib/calendar.ts`, minggu mulai Senin), `Drawer` (animasi masuk, focus trap, Back/Escape), `Toast` (maks 3, X untuk tutup). Animasi hanya transform/opacity dan mati bila prefers-reduced-motion. Lint menolak `<select>` dan `type="date"` bawaan.
+- Mode gelap mengikuti sistem lewat token di `src/index.css`; pakai `bg-surface`/`text-surface`, bukan putih tetap (dijaga lint).
 - Keempat halaman memakai `features/shared/CollectionPage.tsx` dengan konfigurasi per koleksi (kolom, kartu HP, filter chip, form, CSV). Form generik di `features/shared/formModel.ts` (murni, dites).
 - Angka ringkasan dan daftar tindak lanjut: `src/lib/summary.ts` (murni, dites; `WINDOW` berisi jendela hari).

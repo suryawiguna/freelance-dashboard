@@ -16,9 +16,10 @@ import { moneyInput, type FieldDef, type FormValues } from "../shared/formModel"
 import { byDate, byText, CardLine, LinkButton, Money, Muted } from "../shared/helpers";
 
 const STAGE_TONE: Record<LeadStage, Tone> = {
-  Baru: "accent",
-  "Kirim harga": "accent",
-  Nego: "accent",
+  // Netral seperti chip di suryawiguna.com; oranye khusus untuk aksi.
+  Baru: "neutral",
+  "Kirim harga": "neutral",
+  Nego: "neutral",
   Deal: "ok",
   "On hold": "neutral",
   Tutup: "neutral",

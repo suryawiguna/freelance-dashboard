@@ -1,10 +1,13 @@
 import { X } from "lucide-react";
 import { useEffect, useRef, type ReactNode } from "react";
+import { cycleTab } from "./Popover";
 
 /**
  * Panel edit: drawer kanan di desktop, sheet penuh di HP. Overlay tetap,
  * jadi halaman di belakangnya tidak berpindah atau di-scroll. Fokus pindah ke
- * panel dengan preventScroll. Tutup dengan tombol, Escape, atau Back.
+ * panel dengan preventScroll dan Tab berputar di dalamnya. Masuk dengan
+ * animasi geser (transform saja, 180ms; mati bila prefers-reduced-motion).
+ * Tutup dengan tombol, Escape, atau Back.
  */
 export function Drawer({
   title,
@@ -26,6 +29,8 @@ export function Drawer({
     panel.current?.focus({ preventScroll: true });
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") close.current();
+      // Hanya bila fokus di panel; popover (portal) mengatur Tab-nya sendiri.
+      if (e.key === "Tab" && panel.current?.contains(document.activeElement)) cycleTab(e, panel.current);
     };
     window.addEventListener("keydown", onKey);
     const overflow = document.body.style.overflow;
@@ -39,14 +44,14 @@ export function Drawer({
 
   return (
     <div className="fixed inset-0 z-30">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} aria-hidden />
+      <div className="absolute inset-0 animate-fade-in bg-black/50 motion-reduce:animate-none" onClick={onClose} aria-hidden />
       <div
         ref={panel}
         role="dialog"
         aria-modal="true"
         aria-label={title}
         tabIndex={-1}
-        className="absolute inset-0 flex flex-col bg-surface outline-none sm:inset-y-0 sm:left-auto sm:w-[480px] sm:border-l sm:border-gray-200"
+        className="absolute inset-0 flex animate-sheet-in flex-col bg-surface outline-none motion-reduce:animate-none sm:inset-y-0 sm:left-auto sm:w-[480px] sm:animate-drawer-in sm:border-l sm:border-gray-200"
       >
         <header className="flex items-center justify-between gap-4 border-b border-gray-200 px-5 py-3">
           <h2 className="truncate text-lg font-bold">{title}</h2>

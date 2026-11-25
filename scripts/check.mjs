@@ -6,6 +6,8 @@
  * - §7: tidak ada em dash di teks UI.
  * - §6.2: hapus memakai konfirmasi di panel, bukan confirm().
  * - §7 mode gelap: tidak ada warna putih/hitam tetap; pakai token surface.
+ * - Komponen inti: dropdown dan tanggal lewat <Select> / <DatePicker>, bukan
+ *   <select> / <input type="date"> bawaan (tampilan beda per browser).
  * - §4: UID pemilik di firestore.rules sama dengan src/owner.ts.
  */
 import { readdirSync, readFileSync, statSync } from "node:fs";
@@ -41,6 +43,12 @@ const RULES = [
     pattern: /\b(bg|text|border|from|to|via|fill|stroke)-white\b/,
     only: /\.(ts|tsx)$/,
     message: "Warna putih tetap merusak mode gelap. Pakai bg-surface / text-surface (src/index.css).",
+  },
+  {
+    pattern: /<select\b|type="date"/,
+    only: /\.tsx$/,
+    allowed: new Set(["src/components/Select.tsx", "src/components/DatePicker.tsx"]),
+    message: "Pakai <Select> (components/Select.tsx) atau <DatePicker> (components/DatePicker.tsx).",
   },
   {
     pattern: /\b(window\.)?confirm\(/,

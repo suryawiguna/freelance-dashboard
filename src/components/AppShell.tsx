@@ -33,7 +33,7 @@ export function AppShell({ route, children }: { route: RoutePath; children: Reac
         }}
         className={cn(
           "flex min-h-11 items-center rounded-card transition-colors",
-          compact ? "flex-auto flex-col justify-center gap-0.5 px-1 py-1" : "gap-3 px-3",
+          compact ? "flex-auto flex-col justify-center gap-1 px-1 py-1.5" : "gap-3 px-3",
           active ? "text-accent" : "text-gray-600 hover:text-gray-900",
           !compact && active && "bg-accent-soft",
           !compact && !active && "hover:bg-gray-100",
@@ -46,8 +46,8 @@ export function AppShell({ route, children }: { route: RoutePath; children: Reac
   };
 
   return (
-    <div className="min-h-dvh sm:flex">
-      <aside className="hidden w-60 shrink-0 flex-col border-r border-gray-200 bg-surface p-4 sm:flex">
+    <div className="min-h-dvh sm:pl-60">
+      <aside className="fixed inset-y-0 left-0 z-10 hidden w-60 flex-col overflow-y-auto border-r border-gray-200 bg-surface p-4 sm:flex">
         <p className="px-3 pb-6 pt-2 text-lg font-bold">Freelance</p>
         <nav className="flex flex-1 flex-col gap-1">{ROUTES.map((r) => link(r.path, r.label, false))}</nav>
         <button
@@ -60,7 +60,7 @@ export function AppShell({ route, children }: { route: RoutePath; children: Reac
         </button>
       </aside>
 
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-28 pt-6 sm:px-8 sm:pb-10 sm:pt-10">
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-32 pt-6 sm:px-8 sm:pb-10 sm:pt-10">
         {error && (
           <p role="alert" className="mb-6 rounded-card bg-late-soft px-4 py-3 text-late">
             {error}
@@ -70,8 +70,8 @@ export function AppShell({ route, children }: { route: RoutePath; children: Reac
       </main>
 
       <nav
-        className="fixed inset-x-0 bottom-0 z-10 flex border-t border-gray-200 bg-surface sm:hidden"
-        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+        className="fixed inset-x-0 bottom-0 z-10 flex border-t border-gray-200 bg-surface pt-2 sm:hidden"
+        style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 0.5rem)" }}
       >
         {ROUTES.map((r) => link(r.path, r.label, true))}
       </nav>

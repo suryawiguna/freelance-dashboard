@@ -13,7 +13,7 @@ import { byDate, byText, CardLine, LinkButton, Money, Muted } from "../shared/he
 
 const STATUS_TONE: Record<ProjectStatus, Tone> = {
   "Belum mulai": "neutral",
-  Dikerjakan: "accent",
+  Dikerjakan: "neutral",
   Revisi: "near",
   Live: "ok",
   Maintenance: "ok",

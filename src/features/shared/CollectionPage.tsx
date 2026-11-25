@@ -6,6 +6,7 @@ import { Drawer } from "../../components/Drawer";
 import { EmptyState } from "../../components/EmptyState";
 import { inputClass } from "../../components/Field";
 import { PageHeader } from "../../components/PageHeader";
+import { Select } from "../../components/Select";
 import { useToast } from "../../components/Toast";
 import { useData } from "../../data/DataContext";
 import { create, remove, update } from "../../data/repo";
@@ -140,16 +141,14 @@ export function CollectionPage<C extends CollectionName>({ config }: { config: P
           </label>
           {config.filters.map((f, i) =>
             f.as === "select" ? (
-              <label key={f.label} className="block sm:w-56">
-                <span className="sr-only">{f.label}</span>
-                <select value={chips[i]} onChange={(e) => setFilter(i, e.target.value)} className={inputClass}>
-                  {f.options.map((o) => (
-                    <option key={o.value} value={o.value}>
-                      {o.label} ({rows.filter(o.test).length})
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <div key={f.label} className="sm:w-60">
+                <Select
+                  aria-label={f.label}
+                  value={chips[i]}
+                  onChange={(v) => setFilter(i, v)}
+                  options={f.options.map((o) => ({ value: o.value, label: `${o.label} (${rows.filter(o.test).length})` }))}
+                />
+              </div>
             ) : null,
           )}
         </div>

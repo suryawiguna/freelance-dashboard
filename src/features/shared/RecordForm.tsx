@@ -1,4 +1,6 @@
+import { DatePicker } from "../../components/DatePicker";
 import { Field, inputClass } from "../../components/Field";
+import { Select } from "../../components/Select";
 import { parseRupiah } from "../../lib/money";
 import { moneyInput, type FieldDef, type FormValues } from "./formModel";
 
@@ -41,17 +43,9 @@ function Input({
     case "textarea":
       return <textarea {...common} rows={4} value={value} onChange={(e) => onChange(e.target.value)} />;
     case "select":
-      return (
-        <select {...common} value={value} onChange={(e) => onChange(e.target.value)}>
-          {def.options?.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
-          ))}
-        </select>
-      );
+      return <Select {...a11y} value={value} onChange={onChange} options={def.options ?? []} />;
     case "date":
-      return <input {...common} type="date" value={value} onChange={(e) => onChange(e.target.value)} />;
+      return <DatePicker {...a11y} value={value} onChange={onChange} />;
     case "url":
       return (
         <input

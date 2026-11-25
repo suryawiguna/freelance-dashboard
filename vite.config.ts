@@ -17,7 +17,7 @@ export default defineConfig({
         short_name: "Freelance",
         description: "Lead, proyek, tagihan, dan aset freelance",
         lang: "id",
-        theme_color: "#ffffff",
+        theme_color: "#f8f8f8",
         background_color: "#f9fafb",
         display: "standalone",
         start_url: "/",
