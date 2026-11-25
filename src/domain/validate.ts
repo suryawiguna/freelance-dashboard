@@ -18,6 +18,8 @@ export type Errors = Record<string, string>;
 const MAX_MONEY = 100_000_000_000;
 
 const isHttpsOrEmpty = (s: string) => s === "" || /^https:\/\/[^ ]+$/.test(s);
+/** Sama dengan contactOrEmpty() di firestore.rules. */
+export const isContact = (s: string) => isHttpsOrEmpty(s) || (s.length <= 320 && /^mailto:[^ @/]+@[^ @/]+\.[^ @/]+$/.test(s));
 const dateOk = (s: string) => s === "" || isDateStr(s);
 const moneyOk = (v: number | null) => v === null || (Number.isInteger(v) && v >= 0 && v <= MAX_MONEY);
 
@@ -47,7 +49,7 @@ export function validate<C extends CollectionName>(c: C, d: Draft<Records[C]>): 
       text(e, "name", l.name, 200, true);
       text(e, "service", l.service, 200);
       if (l.source !== "") oneOf("source", l.source, LEAD_SOURCES);
-      url("contact", l.contact);
+      if (!isContact(l.contact)) e.contact = "Isi link lengkap (https://...) atau alamat email.";
       oneOf("stage", l.stage, LEAD_STAGES);
       money("value", l.value);
       money("monthly", l.monthly);

@@ -7,7 +7,7 @@
 /** "YYYY-MM-DD" atau "" (belum diisi). */
 export type DateStr = string;
 
-export const LEAD_SOURCES = ["Threads", "Instagram", "WhatsApp", "Referral", "Website", "Lainnya"] as const;
+export const LEAD_SOURCES = ["Threads", "Instagram", "WhatsApp", "Email", "Referral", "Website", "Lainnya"] as const;
 export type LeadSource = (typeof LEAD_SOURCES)[number];
 
 export const LEAD_STAGES = ["Baru", "Kirim harga", "Nego", "Deal", "On hold", "Tutup"] as const;

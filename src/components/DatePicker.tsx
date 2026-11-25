@@ -1,27 +1,26 @@
-import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import * as Popover from "@radix-ui/react-popover";
+import { CalendarDays } from "lucide-react";
+import { useRef, useState } from "react";
+import { DayPicker } from "react-day-picker";
+import { id as localeId } from "react-day-picker/locale";
 import type { DateStr } from "../domain/types";
-import {
-  addMonths,
-  longDate,
-  monthGrid,
-  monthTitle,
-  shiftMonth,
-  WEEKDAYS,
-  weekdayIndex,
-  ymOf,
-  type YearMonth,
-} from "../lib/calendar";
 import { cn } from "../lib/cn";
-import { addDays, formatDate, isDateStr, todayWita } from "../lib/dates";
+import { formatDate, isDateStr, todayWita } from "../lib/dates";
 import { inputClass } from "./Field";
-import { Popover } from "./Popover";
+
+const pad = (n: number) => String(n).padStart(2, "0");
+/** "YYYY-MM-DD" ke Date tengah malam lokal (hanya untuk tampilan kalender). */
+const toDate = (s: DateStr) => {
+  const [y, m, d] = s.split("-").map(Number);
+  return new Date(y, m - 1, d);
+};
+const fromDate = (d: Date): DateStr => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 
 /**
- * Pemilih tanggal pengganti <input type="date">. Nilai tetap "YYYY-MM-DD"
- * atau "". Tampilan "27 Nov 2026", minggu mulai Senin, hari ini = WITA.
- * Keyboard di kalender: panah (hari/minggu), PageUp/PageDown (bulan),
- * Home/End (awal/akhir minggu), Enter (pilih), Escape (tutup).
+ * Pemilih tanggal: Radix Popover + react-day-picker (keyboard, aria, locale
+ * Indonesia, minggu mulai Senin). Nilai tetap "YYYY-MM-DD" atau "";
+ * tampilan "27 Nov 2026"; "hari ini" = WITA. Gaya hari ada di index.css
+ * (.cal-day).
  */
 export function DatePicker({
   value,
@@ -38,173 +37,89 @@ export function DatePicker({
   "aria-describedby"?: string;
   "aria-label"?: string;
 }) {
-  const trigger = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
+  const content = useRef<HTMLDivElement>(null);
   const valid = isDateStr(value);
+  const today = todayWita();
 
-  const close = (refocus = true) => {
+  const pick = (v: DateStr) => {
+    onChange(v);
     setOpen(false);
-    if (refocus) trigger.current?.focus({ preventScroll: true });
   };
 
+  const navButton =
+    "flex size-11 items-center justify-center rounded-card text-gray-700 hover:bg-gray-100 aria-disabled:opacity-40";
+
   return (
-    <>
-      <button
-        ref={trigger}
-        id={id}
-        type="button"
-        aria-haspopup="dialog"
-        aria-expanded={open}
-        {...aria}
-        onClick={() => setOpen((o) => !o)}
-        onKeyDown={(e) => {
-          if (e.key === "ArrowDown" && !open) {
+    <Popover.Root open={open} onOpenChange={setOpen}>
+      <Popover.Trigger asChild>
+        <button
+          id={id}
+          type="button"
+          {...aria}
+          className={cn(inputClass, "flex items-center justify-between gap-2 text-left")}
+        >
+          <span className={cn(!valid && "text-gray-400")}>{valid ? formatDate(value) : placeholder}</span>
+          <CalendarDays size={20} aria-hidden className="shrink-0 text-gray-500" />
+        </button>
+      </Popover.Trigger>
+      <Popover.Portal>
+        <Popover.Content
+          align="start"
+          sideOffset={6}
+          collisionPadding={8}
+          ref={content}
+          // Fokus ke satu-satunya hari yang bisa di-Tab (terpilih, atau hari ini),
+          // supaya panah dan Enter langsung bekerja.
+          onOpenAutoFocus={(e) => {
             e.preventDefault();
-            setOpen(true);
-          }
-        }}
-        className={cn(inputClass, "flex items-center justify-between gap-2 text-left")}
-      >
-        <span className={cn(!valid && "text-gray-400")}>{valid ? formatDate(value) : placeholder}</span>
-        <CalendarDays size={20} aria-hidden className="shrink-0 text-gray-500" />
-      </button>
-      {open && (
-        <Popover anchor={trigger} onClose={() => setOpen(false)} minWidth={332} trapFocus>
-          <Calendar
-            value={valid ? value : ""}
-            onPick={(d) => {
-              onChange(d);
-              close();
+            content.current
+              ?.querySelector<HTMLButtonElement>('td[data-day] button[tabindex="0"]')
+              ?.focus({ preventScroll: true });
+          }}
+          className="z-50 max-h-[var(--radix-popover-content-available-height)] animate-pop-in overflow-y-auto rounded-card border border-gray-200 bg-surface p-3 shadow-lg outline-none motion-reduce:animate-none"
+        >
+          <DayPicker
+            mode="single"
+            required
+            showOutsideDays
+            fixedWeeks
+            locale={localeId}
+            weekStartsOn={1}
+            today={toDate(today)}
+            selected={valid ? toDate(value) : undefined}
+            defaultMonth={toDate(valid ? value : today)}
+            onSelect={(d) => d && pick(fromDate(d))}
+            classNames={{
+              root: "text-gray-900",
+              months: "relative",
+              month: "space-y-1",
+              month_caption: "flex h-11 items-center justify-center px-12 font-semibold capitalize",
+              nav: "absolute inset-x-0 top-0 flex justify-between",
+              button_previous: navButton,
+              button_next: navButton,
+              chevron: "size-5 fill-current",
+              month_grid: "border-collapse",
+              weekday: "h-9 w-11 font-normal text-gray-500",
+              day: "cal-day p-0 text-center",
+              day_button:
+                "flex size-11 items-center justify-center rounded-card tabular-nums transition-colors hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-accent",
             }}
           />
-        </Popover>
-      )}
-    </>
-  );
-}
-
-function Calendar({ value, onPick }: { value: DateStr; onPick: (d: DateStr) => void }) {
-  const today = todayWita();
-  const [focus, setFocus] = useState<DateStr>(value || today);
-  const [view, setView] = useState<YearMonth>(ymOf(value || today));
-  const grid = useRef<HTMLDivElement>(null);
-
-  // Fokus ke hari terpilih saat dibuka, lalu ikuti navigasi keyboard.
-  useEffect(() => {
-    grid.current?.querySelector<HTMLButtonElement>(`[data-date="${focus}"]`)?.focus({ preventScroll: true });
-  }, [focus, view]);
-
-  const go = (d: DateStr) => {
-    setFocus(d);
-    const ym = ymOf(d);
-    if (ym.year !== view.year || ym.month !== view.month) setView(ym);
-  };
-
-  const onKeyDown = (e: React.KeyboardEvent) => {
-    const moves: Record<string, () => DateStr> = {
-      ArrowLeft: () => addDays(focus, -1),
-      ArrowRight: () => addDays(focus, 1),
-      ArrowUp: () => addDays(focus, -7),
-      ArrowDown: () => addDays(focus, 7),
-      PageUp: () => addMonths(focus, -1),
-      PageDown: () => addMonths(focus, 1),
-      Home: () => addDays(focus, -weekdayIndex(focus)),
-      End: () => addDays(focus, 6 - weekdayIndex(focus)),
-    };
-    const move = moves[e.key];
-    if (move) {
-      e.preventDefault();
-      go(move());
-    }
-  };
-
-  const changeMonth = (delta: number) => {
-    const next = shiftMonth(view, delta);
-    setView(next);
-    setFocus(addMonths(focus, delta));
-  };
-
-  const cells = monthGrid(view);
-
-  return (
-    <div role="dialog" aria-label="Pilih tanggal" className="p-3">
-      <div className="mb-2 flex items-center justify-between">
-        <button
-          type="button"
-          onClick={() => changeMonth(-1)}
-          aria-label="Bulan sebelumnya"
-          className="flex size-11 items-center justify-center rounded-card text-gray-700 hover:bg-gray-100"
-        >
-          <ChevronLeft size={22} aria-hidden />
-        </button>
-        <p className="font-semibold" aria-live="polite">
-          {monthTitle(view)}
-        </p>
-        <button
-          type="button"
-          onClick={() => changeMonth(1)}
-          aria-label="Bulan berikutnya"
-          className="flex size-11 items-center justify-center rounded-card text-gray-700 hover:bg-gray-100"
-        >
-          <ChevronRight size={22} aria-hidden />
-        </button>
-      </div>
-
-      <div className="grid grid-cols-7 text-center text-gray-500" aria-hidden>
-        {WEEKDAYS.map((w) => (
-          <span key={w} className="py-1">
-            {w}
-          </span>
-        ))}
-      </div>
-
-      <div ref={grid} role="grid" className="grid grid-cols-7" onKeyDown={onKeyDown}>
-        {cells.map((c) => {
-          const selected = c.date === value;
-          const isToday = c.date === today;
-          return (
-            <button
-              key={c.date}
-              type="button"
-              data-date={c.date}
-              tabIndex={c.date === focus ? 0 : -1}
-              aria-label={`${longDate(c.date)}${isToday ? ", hari ini" : ""}`}
-              aria-pressed={selected}
-              onClick={() => onPick(c.date)}
-              className={cn(
-                "flex h-11 items-center justify-center rounded-card tabular-nums transition-colors",
-                "focus-visible:outline-2 focus-visible:outline-accent",
-                selected
-                  ? "bg-accent font-bold text-surface"
-                  : cn(
-                      "hover:bg-gray-100",
-                      c.inMonth ? "text-gray-900" : "text-gray-400",
-                      isToday && "font-bold text-accent ring-1 ring-accent ring-inset",
-                    ),
-              )}
-            >
-              {c.day}
+          <div className="mt-2 flex justify-between gap-2 border-t border-gray-200 pt-2">
+            <button type="button" onClick={() => pick("")} className="min-h-11 rounded-card px-3 text-gray-600 hover:bg-gray-100">
+              Kosongkan
             </button>
-          );
-        })}
-      </div>
-
-      <div className="mt-2 flex justify-between gap-2 border-t border-gray-200 pt-2">
-        <button
-          type="button"
-          onClick={() => onPick("")}
-          className="min-h-11 rounded-card px-3 text-gray-600 hover:bg-gray-100"
-        >
-          Kosongkan
-        </button>
-        <button
-          type="button"
-          onClick={() => onPick(today)}
-          className="min-h-11 rounded-card px-3 font-semibold text-accent hover:bg-accent-soft"
-        >
-          Hari ini
-        </button>
-      </div>
-    </div>
+            <button
+              type="button"
+              onClick={() => pick(today)}
+              className="min-h-11 rounded-card px-3 font-semibold text-accent hover:bg-accent-soft"
+            >
+              Hari ini
+            </button>
+          </div>
+        </Popover.Content>
+      </Popover.Portal>
+    </Popover.Root>
   );
 }

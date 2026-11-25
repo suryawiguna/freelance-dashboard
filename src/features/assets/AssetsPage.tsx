@@ -53,7 +53,7 @@ export default function AssetsPage() {
           ),
         },
         { header: "Jenis", cell: (a) => a.kind },
-        { header: "Provider", className: "hidden lg:table-cell", cell: (a) => a.provider || <Muted>-</Muted> },
+        { header: "Provider", className: "hidden xl:table-cell", cell: (a) => a.provider || <Muted>-</Muted> },
         { header: "Biaya per tahun", cell: (a) => <Money value={a.cost} /> },
         {
           header: "Perpanjangan",

@@ -46,6 +46,8 @@ function Input({
       return <Select {...a11y} value={value} onChange={onChange} options={def.options ?? []} />;
     case "date":
       return <DatePicker {...a11y} value={value} onChange={onChange} />;
+    case "contact":
+      return <input {...common} type="text" inputMode="email" autoComplete="off" value={value} onChange={(e) => onChange(e.target.value)} />;
     case "url":
       return (
         <input

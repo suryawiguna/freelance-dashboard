@@ -38,6 +38,10 @@ service cloud.firestore {
     function urlOrEmpty(v) {
       return v == '' || (str(v, 1000) && v.matches('^https://[^ ]+$'));
     }
+    // Kontak lead: link https, alamat email sebagai mailto:, atau "".
+    function contactOrEmpty(v) {
+      return urlOrEmpty(v) || (str(v, 320) && v.matches('^mailto:[^ @/]+@[^ @/]+[.][^ @/]+$'));
+    }
     function idOrNull(v) {
       return v == null || (v is string && v.size() > 0 && v.size() <= 200);
     }
@@ -58,8 +62,8 @@ service cloud.firestore {
                              'branches', 'followUp', 'next', 'note', 'createdAt', 'updatedAt'])
         && requiredStr(d.name, 200)
         && str(d.get('service', ''), 200)
-        && d.get('source', '') in ['', 'Threads', 'Instagram', 'WhatsApp', 'Referral', 'Website', 'Lainnya']
-        && urlOrEmpty(d.get('contact', ''))
+        && d.get('source', '') in ['', 'Threads', 'Instagram', 'WhatsApp', 'Email', 'Referral', 'Website', 'Lainnya']
+        && contactOrEmpty(d.get('contact', ''))
         && d.stage in ['Baru', 'Kirim harga', 'Nego', 'Deal', 'On hold', 'Tutup']
         && moneyOrNull(d.get('value', null))
         && moneyOrNull(d.get('monthly', null))

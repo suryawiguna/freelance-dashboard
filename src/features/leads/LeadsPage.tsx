@@ -7,6 +7,7 @@ import { useToast } from "../../components/Toast";
 import { useData } from "../../data/DataContext";
 import { create, update } from "../../data/repo";
 import { bumpFollowUp, monthlyForBranches, projectFromLead } from "../../domain/leadActions";
+import { isContact } from "../../domain/validate";
 import { LEAD_SOURCES, LEAD_STAGES, type Lead, type LeadStage } from "../../domain/types";
 import { formatDate, todayWita } from "../../lib/dates";
 import { openEdit } from "../../lib/route";
@@ -37,9 +38,9 @@ const FIELDS: FieldDef[] = [
   {
     key: "contact",
     label: "Kontak",
-    kind: "url",
+    kind: "contact",
     placeholder: "https://www.threads.com/messages/t/...",
-    hint: "Link DM Threads atau kontak lain, diawali https://",
+    hint: "Link DM (diawali https://) atau alamat email.",
   },
   { key: "stage", label: "Tahap", kind: "select", options: LEAD_STAGES.map((s) => ({ value: s, label: s })) },
   { key: "value", label: "Nilai setup", kind: "money" },
@@ -65,6 +66,8 @@ function derive(key: string, next: FormValues, prev: FormValues): FormValues {
   const untouched = prev.monthly === "" || prev.monthly === auto(prev.branches);
   return untouched ? { ...next, monthly: auto(next.branches) } : next;
 }
+
+const contactLabel = (contact: string) => (contact.startsWith("mailto:") ? "Kirim email" : "Buka DM");
 
 function sortLeads(a: Lead, b: Lead): number {
   const oa = isOpenLead(a) ? 0 : 1;
@@ -145,7 +148,7 @@ export default function LeadsPage() {
             <DateCell date={l.followUp} today={today} nearDays={WINDOW.leadFollowUp} active={isOpenLead(l)} />
           ),
         },
-        { header: "Langkah berikutnya", className: "hidden lg:table-cell", cell: (l) => l.next || <Muted>-</Muted> },
+        { header: "Langkah berikutnya", className: "hidden xl:table-cell", cell: (l) => l.next || <Muted>-</Muted> },
       ],
       card: (l) => (
         <div className="space-y-1">
@@ -173,13 +176,22 @@ export default function LeadsPage() {
           {l.next && <CardLine label="Berikutnya">{l.next}</CardLine>}
         </div>
       ),
-      rowActions: (l) => (
+      rowActions: (l, { compact }) => (
         <>
-          {l.contact && <LinkButton href={l.contact}>Buka DM</LinkButton>}
+          {l.contact && (
+            <LinkButton href={l.contact} iconOnly={compact}>
+              {contactLabel(l.contact)}
+            </LinkButton>
+          )}
           {isOpenLead(l) && (
-            <Button onClick={() => bump(l)} aria-label={`Follow up ${l.name} tambah 3 hari`}>
+            <Button
+              onClick={() => bump(l)}
+              aria-label={`Follow up ${l.name} tambah 3 hari`}
+              title="Follow up +3 hari"
+              className={compact ? "w-11 px-0" : undefined}
+            >
               <CalendarPlus size={18} aria-hidden />
-              +3 hari
+              {!compact && "+3 hari"}
             </Button>
           )}
         </>
@@ -194,12 +206,14 @@ export default function LeadsPage() {
           toast("Proyek dibuat dari lead ini.");
           openEdit(id, "/proyek");
         };
-        const contact = /^https:\/\/\S+$/.test(values.contact ?? "") ? values.contact : "";
+        const typed = (values.contact ?? "").trim();
+        const asMail = /^[^\s@/:]+@[^\s@/]+\.[^\s@/]+$/.test(typed) ? `mailto:${typed}` : typed;
+        const contact = asMail && isContact(asMail) ? asMail : "";
         const showProject = values.stage === "Deal";
         if (!contact && !record && !showProject) return null;
         return (
           <div className="flex flex-wrap gap-2">
-            {contact && <LinkButton href={contact}>Buka DM</LinkButton>}
+            {contact && <LinkButton href={contact}>{contactLabel(contact)}</LinkButton>}
             {record && (
               <Button onClick={() => bump(record, setValue, values.followUp)}>
                 <CalendarPlus size={18} aria-hidden />

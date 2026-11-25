@@ -258,6 +258,7 @@ describe("leads", () => {
     )],
     ["angka null", { value: null, monthly: null, branches: null }],
     ["kontak dan follow up kosong", { contact: "", followUp: "" }],
+    ["kontak email (mailto:)", { source: "Email", contact: "mailto:halo@contoh.com" }],
   ]);
   rejects("leads", LEAD, [
     ...commonBad("name"),
@@ -268,6 +269,9 @@ describe("leads", () => {
     ["kontak http", { contact: "http://threads.com/x" }],
     ["kontak javascript:", { contact: "javascript:alert(1)" }],
     ["kontak bukan url", { contact: "082112345678" }],
+    ["kontak email polos tanpa mailto:", { contact: "halo@contoh.com" }],
+    ["kontak mailto rusak", { contact: "mailto:halo" }],
+    ["kontak mailto dengan spasi", { contact: "mailto:a b@c.com" }],
     ...badMoney("value"),
     ...badMoney("monthly"),
     ["cabang 0", { branches: 0 }],

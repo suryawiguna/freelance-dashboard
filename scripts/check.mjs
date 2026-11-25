@@ -4,7 +4,7 @@
  * - §8: semua akses Firestore lewat src/data/repo.ts.
  * - §7: tidak ada teks di bawah 16px (text-xs, text-sm, ukuran arbitrer kecil).
  * - §7: tidak ada em dash di teks UI.
- * - §6.2: hapus memakai konfirmasi di panel, bukan confirm().
+ * - §6.2: aksi berbahaya memakai useConfirm() (dialog sendiri), bukan confirm().
  * - §7 mode gelap: tidak ada warna putih/hitam tetap; pakai token surface.
  * - Komponen inti: dropdown dan tanggal lewat <Select> / <DatePicker>, bukan
  *   <select> / <input type="date"> bawaan (tampilan beda per browser).
@@ -53,7 +53,7 @@ const RULES = [
   {
     pattern: /\b(window\.)?confirm\(/,
     only: /\.tsx?$/,
-    message: "confirm() dilarang. Pakai konfirmasi dua langkah di panel (PLAN §6.2).",
+    message: "confirm() bawaan dilarang. Pakai useConfirm() dari components/ConfirmDialog.tsx.",
   },
 ];
 

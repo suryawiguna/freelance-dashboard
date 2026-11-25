@@ -58,4 +58,17 @@ describe("fromFormValues", () => {
     expect(draft.projectId).toBeNull();
     expect(errors).toHaveProperty("amount");
   });
+
+  it("kontak: email polos jadi mailto:, link https tetap, tampil tanpa mailto:", () => {
+    const fields: FieldDef[] = [
+      { key: "name", label: "Nama", kind: "text" },
+      { key: "contact", label: "Kontak", kind: "contact" },
+    ];
+    const mail = fromFormValues("leads", fields, { name: "A", contact: " halo@contoh.com " });
+    expect(mail.draft.contact).toBe("mailto:halo@contoh.com");
+    expect(mail.errors).toEqual({});
+    expect(toFormValues(fields, mail.draft).contact).toBe("halo@contoh.com");
+    expect(fromFormValues("leads", fields, { name: "A", contact: "https://t/x" }).draft.contact).toBe("https://t/x");
+    expect(fromFormValues("leads", fields, { name: "A", contact: "halo@contoh" }).errors).toHaveProperty("contact");
+  });
 });

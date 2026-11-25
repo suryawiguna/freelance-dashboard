@@ -81,7 +81,7 @@ export default function ProjectsPage() {
             <DateCell date={p.due} today={today} nearDays={WINDOW.projectDue} active={IN_PROGRESS.has(p.status)} />
           ),
         },
-        { header: "Langkah berikutnya", className: "hidden lg:table-cell", cell: (p) => p.next || <Muted>-</Muted> },
+        { header: "Langkah berikutnya", className: "hidden xl:table-cell", cell: (p) => p.next || <Muted>-</Muted> },
       ],
       card: (p) => (
         <div className="space-y-1">

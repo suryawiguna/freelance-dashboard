@@ -39,20 +39,34 @@ export function CardLine({ label, children }: { label: string; children: ReactNo
 }
 
 /** Link keluar sebagai tombol, buka di tab baru. Tap target 44px. */
-export function LinkButton({ href, children, className }: { href: string; children: ReactNode; className?: string }) {
+export function LinkButton({
+  href,
+  children,
+  className,
+  iconOnly = false,
+}: {
+  href: string;
+  /** Teks tombol; jadi aria-label dan tooltip bila iconOnly. */
+  children: string;
+  className?: string;
+  iconOnly?: boolean;
+}) {
   return (
     <a
       href={href}
-      target="_blank"
+      target={href.startsWith("mailto:") ? undefined : "_blank"}
       rel="noopener noreferrer"
       onClick={(e) => e.stopPropagation()}
+      aria-label={iconOnly ? children : undefined}
+      title={iconOnly ? children : undefined}
       className={cn(
-        "inline-flex min-h-11 items-center justify-center gap-2 whitespace-nowrap rounded-card border border-gray-200 bg-surface px-4 font-semibold text-gray-900 hover:bg-gray-50",
+        "inline-flex min-h-11 items-center justify-center gap-2 whitespace-nowrap rounded-card border border-gray-200 bg-surface font-semibold text-gray-900 hover:bg-gray-50",
+        iconOnly ? "w-11" : "px-4",
         className,
       )}
     >
       <ExternalLink size={18} aria-hidden />
-      {children}
+      {!iconOnly && children}
     </a>
   );
 }

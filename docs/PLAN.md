@@ -47,7 +47,7 @@ Semua uang disimpan sebagai **integer rupiah**. Tanggal disimpan sebagai string 
 |---|---|---|
 | name | string | wajib |
 | service | string | contoh: "Kasir (2 cabang)", "Website" |
-| source | enum | Threads, Instagram, WhatsApp, Referral, Website, Lainnya |
+| source | enum | Threads, Instagram, WhatsApp, Email, Referral, Website, Lainnya |
 | contact | string url | link DM Threads atau kontak lain; harus https |
 | stage | enum | Baru, Kirim harga, Nego, Deal, On hold, Tutup |
 | value | int \| null | nilai setup / proyek |
@@ -128,7 +128,7 @@ Setiap halaman berisi:
 - Tombol "Tambah".
 - Klik baris untuk membuka panel edit. Di desktop panel ini berupa drawer kanan, di HP berupa sheet penuh. **Jangan** scroll otomatis halaman. Tutup dengan tombol, Escape, atau Back.
 - Filter sederhana: tahap/status (chip), sumber (khusus lead), dan pencarian nama.
-- Hapus memakai konfirmasi dua langkah di dalam panel, bukan `confirm()`.
+- Aksi berbahaya (hapus, keluar, menutup panel dengan perubahan yang belum disimpan) memakai dialog konfirmasi sendiri, bukan `confirm()`.
 - Khusus lead: tombol "Buka DM" yang membuka `contact` di tab baru, dan tombol cepat "Follow up +3 hari" yang menggeser `followUp`.
 
 ### 6.3 Ekspor

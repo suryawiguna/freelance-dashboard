@@ -1,6 +1,7 @@
 import { Download, Plus, Search } from "lucide-react";
 import { useMemo, useState, type ReactNode } from "react";
 import { Button } from "../../components/Button";
+import { useConfirm } from "../../components/ConfirmDialog";
 import { ChipGroup } from "../../components/Chip";
 import { Drawer } from "../../components/Drawer";
 import { EmptyState } from "../../components/EmptyState";
@@ -62,7 +63,8 @@ export interface PageConfig<C extends CollectionName> {
   columns: Column<Records[C]>[];
   card: (row: Records[C]) => ReactNode;
   /** Tombol cepat di baris/kartu. Klik di sini tidak membuka panel. */
-  rowActions?: (row: Records[C]) => ReactNode;
+  /** compact = di tabel desktop: tombol ikon saja supaya tabel tidak melebar. */
+  rowActions?: (row: Records[C], opts: { compact: boolean }) => ReactNode;
   panelExtras?: (ctx: PanelContext<Records[C]>) => ReactNode;
   drawerTitle: (row: Records[C]) => string;
   csv: CsvColumn<Records[C]>[];
@@ -180,7 +182,11 @@ export function CollectionPage<C extends CollectionName>({ config }: { config: P
   );
 }
 
-/** Tabel di desktop, kartu di HP (di bawah 640px). Klik baris membuka panel. */
+/**
+ * Tabel mulai 1024px, kartu di bawahnya. PLAN menyebut kartu di bawah 640px,
+ * tetapi dengan sidebar 240px tabel tidak muat di 640 sampai 1023px tanpa
+ * scroll horizontal, jadi kartu dipakai sampai 1024px. Klik baris membuka panel.
+ */
 function DataList<C extends CollectionName>({ config, rows }: { config: PageConfig<C>; rows: Records[C][] }) {
   const open = (id: string) => openEdit(id);
   const onKey = (e: React.KeyboardEvent, id: string) => {
@@ -193,17 +199,17 @@ function DataList<C extends CollectionName>({ config, rows }: { config: PageConf
 
   return (
     <>
-      <div className="hidden overflow-hidden rounded-card border border-gray-200 bg-surface sm:block">
+      <div className="hidden overflow-hidden rounded-card border border-gray-200 bg-surface lg:block">
         <table className="w-full border-collapse text-left">
           <thead className="border-b border-gray-200 bg-gray-50 text-gray-600">
             <tr>
               {config.columns.map((c) => (
-                <th key={c.header} scope="col" className={cn("px-4 py-3 font-semibold", c.className)}>
+                <th key={c.header} scope="col" className={cn("px-3 py-3 font-semibold", c.className)}>
                   {c.header}
                 </th>
               ))}
               {config.rowActions && (
-                <th scope="col" className="px-4 py-3">
+                <th scope="col" className="px-3 py-3">
                   <span className="sr-only">Aksi</span>
                 </th>
               )}
@@ -219,13 +225,13 @@ function DataList<C extends CollectionName>({ config, rows }: { config: PageConf
                 className="cursor-pointer border-b border-gray-100 align-top last:border-b-0 hover:bg-gray-50 focus-visible:bg-accent-soft focus-visible:outline-none"
               >
                 {config.columns.map((c) => (
-                  <td key={c.header} className={cn("break-words px-4 py-3", c.className)}>
+                  <td key={c.header} className={cn("break-words px-3 py-3", c.className)}>
                     {c.cell(r)}
                   </td>
                 ))}
                 {config.rowActions && (
-                  <td className="px-4 py-2 text-right" onClick={stop} onKeyDown={stop}>
-                    <div className="flex justify-end gap-1">{config.rowActions(r)}</div>
+                  <td className="px-3 py-2 text-right" onClick={stop} onKeyDown={stop}>
+                    <div className="flex justify-end gap-1">{config.rowActions(r, { compact: true })}</div>
                   </td>
                 )}
               </tr>
@@ -234,7 +240,7 @@ function DataList<C extends CollectionName>({ config, rows }: { config: PageConf
         </table>
       </div>
 
-      <ul className="space-y-3 sm:hidden">
+      <ul className="space-y-3 lg:hidden">
         {rows.map((r) => (
           <li
             key={r.id}
@@ -246,7 +252,7 @@ function DataList<C extends CollectionName>({ config, rows }: { config: PageConf
             {config.card(r)}
             {config.rowActions && (
               <div className="mt-3 flex flex-wrap gap-2" onClick={stop} onKeyDown={stop}>
-                {config.rowActions(r)}
+                {config.rowActions(r, { compact: false })}
               </div>
             )}
           </li>
@@ -268,7 +274,14 @@ function EditPanel<C extends CollectionName>({ config, record }: { config: PageC
     toFormValues(config.fields, base as unknown as Record<string, unknown>),
   );
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [confirming, setConfirming] = useState(false);
+  const ask = useConfirm();
+
+  // Dibandingkan dengan record terbaru (bukan nilai awal), jadi perubahan yang
+  // langsung tersimpan (Follow up +3 hari) tidak dihitung belum disimpan.
+  const dirty = useMemo(
+    () => JSON.stringify(values) !== JSON.stringify(toFormValues(config.fields, base as unknown as Record<string, unknown>)),
+    [values, base, config.fields],
+  );
 
   const setValue = (key: string, value: string) => {
     setValues((prev) => {
@@ -313,27 +326,40 @@ function EditPanel<C extends CollectionName>({ config, record }: { config: PageC
     toast(`${capitalize(config.noun)} dihapus.`);
   };
 
-  const footer = confirming ? (
-    <div className="space-y-3">
-      <p className="font-semibold">Hapus {config.noun} ini? Tidak bisa dibatalkan.</p>
-      <div className="flex gap-2">
-        <Button className="flex-1" onClick={() => setConfirming(false)}>
-          Batal
-        </Button>
-        <Button variant="danger" className="flex-1" onClick={onDelete}>
-          Ya, hapus
-        </Button>
-      </div>
-    </div>
-  ) : (
+  const askDelete = async () => {
+    if (!record) return;
+    const ok = await ask({
+      title: `Hapus ${config.noun} ini?`,
+      body: `"${config.drawerTitle(record)}" akan dihapus permanen dan tidak bisa dikembalikan.`,
+      confirmLabel: "Ya, hapus",
+      tone: "danger",
+    });
+    if (ok) onDelete();
+  };
+
+  /** X, Escape, klik latar, atau Batal: tanya dulu bila ada perubahan yang belum disimpan. */
+  const requestClose = async () => {
+    if (dirty) {
+      const ok = await ask({
+        title: "Buang perubahan?",
+        body: "Perubahan yang belum disimpan akan hilang.",
+        confirmLabel: "Buang",
+        tone: "danger",
+      });
+      if (!ok) return;
+    }
+    closeEdit();
+  };
+
+  const footer = (
     <div className="flex items-center gap-2">
       {record && (
-        <Button variant="ghost" className="text-late" onClick={() => setConfirming(true)}>
+        <Button variant="ghost" className="text-late" onClick={() => void askDelete()}>
           Hapus
         </Button>
       )}
       <div className="ml-auto flex gap-2">
-        <Button onClick={closeEdit}>Batal</Button>
+        <Button onClick={() => void requestClose()}>Batal</Button>
         <Button variant="primary" onClick={onSave}>
           Simpan
         </Button>
@@ -344,7 +370,7 @@ function EditPanel<C extends CollectionName>({ config, record }: { config: PageC
   return (
     <Drawer
       title={record ? config.drawerTitle(record) : `Tambah ${config.noun}`}
-      onClose={closeEdit}
+      onClose={() => void requestClose()}
       footer={footer}
     >
       <form

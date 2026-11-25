@@ -6,7 +6,7 @@ import { EMPTY, type CollectionName, type Draft, type Records } from "../../doma
 import { validate, type Errors } from "../../domain/validate";
 import { parseRupiah } from "../../lib/money";
 
-export type FieldKind = "text" | "textarea" | "url" | "money" | "count" | "date" | "select";
+export type FieldKind = "text" | "textarea" | "url" | "contact" | "money" | "count" | "date" | "select";
 
 export interface FieldDef {
   key: string;
@@ -33,6 +33,7 @@ export function toFormValues(fields: readonly FieldDef[], record: Record<string,
   for (const f of fields) {
     const v = record[f.key];
     if (v === null || v === undefined) out[f.key] = "";
+    else if (f.kind === "contact" && typeof v === "string") out[f.key] = v.replace(/^mailto:/, "");
     else if (f.kind === "money" && typeof v === "number") out[f.key] = v === 0 && f.key === "amount" ? "" : moneyInput(v);
     else out[f.key] = String(v);
   }
@@ -72,6 +73,12 @@ export function fromFormValues<C extends CollectionName>(
       case "textarea":
         draft[f.key] = raw.trim();
         break;
+      case "contact": {
+        // Alamat email polos disimpan sebagai mailto: supaya tombolnya bisa membuka aplikasi email.
+        const v = raw.trim();
+        draft[f.key] = /^[^\s@/:]+@[^\s@/]+\.[^\s@/]+$/.test(v) ? `mailto:${v}` : v;
+        break;
+      }
       default:
         draft[f.key] = raw.trim();
     }

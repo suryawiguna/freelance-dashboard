@@ -1,6 +1,7 @@
 import { Briefcase, CreditCard, LayoutDashboard, LogOut, Server, Users } from "lucide-react";
 import type { ReactNode } from "react";
 import { useData } from "../data/DataContext";
+import { useConfirm } from "./ConfirmDialog";
 import { useAuth } from "../features/auth/AuthContext";
 import { cn } from "../lib/cn";
 import { navigate, ROUTES, type RoutePath } from "../lib/route";
@@ -16,6 +17,15 @@ const ICONS: Record<RoutePath, typeof Users> = {
 /** Sidebar di desktop, bottom tab bar di HP (di bawah 640px). */
 export function AppShell({ route, children }: { route: RoutePath; children: ReactNode }) {
   const { logout } = useAuth();
+  const ask = useConfirm();
+  const onLogout = async () => {
+    const ok = await ask({
+      title: "Keluar dari dashboard?",
+      body: "Data tetap tersimpan. Untuk masuk lagi perlu login Google.",
+      confirmLabel: "Keluar",
+    });
+    if (ok) void logout();
+  };
   const { error } = useData();
 
   const link = (path: RoutePath, label: string, compact: boolean) => {
@@ -52,7 +62,7 @@ export function AppShell({ route, children }: { route: RoutePath; children: Reac
         <nav className="flex flex-1 flex-col gap-1">{ROUTES.map((r) => link(r.path, r.label, false))}</nav>
         <button
           type="button"
-          onClick={() => void logout()}
+          onClick={() => void onLogout()}
           className="flex min-h-11 items-center gap-3 rounded-card px-3 text-gray-600 hover:bg-gray-100 hover:text-gray-900"
         >
           <LogOut size={20} aria-hidden />
