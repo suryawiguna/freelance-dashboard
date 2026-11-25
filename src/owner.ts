@@ -4,4 +4,4 @@
  * dipakai aplikasi untuk langsung menolak akun lain dengan pesan yang jelas,
  * dan untuk tombol masuk di emulator. UID bukan rahasia.
  */
-export const OWNER_UID = "OWNER_UID_BELUM_DIISI";
+export const OWNER_UID = "TpuzzJ0wKXPAeNXnyMhfLr8GJjC3";

@@ -9,7 +9,7 @@ service cloud.firestore {
     // UID akun Google pemilik. Harus sama dengan OWNER_UID di src/owner.ts
     // (npm run lint memeriksanya). Cara mengganti: lihat CLAUDE.md.
     function isOwner() {
-      return request.auth != null && request.auth.uid == 'OWNER_UID_BELUM_DIISI';
+      return request.auth != null && request.auth.uid == 'TpuzzJ0wKXPAeNXnyMhfLr8GJjC3';
     }
 
     // ---- Validator field ----

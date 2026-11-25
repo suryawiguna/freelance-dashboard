@@ -35,7 +35,7 @@ npm run deploy          # lint + tes + build + hosting + firestore.rules. Butuh 
 
 ## Auth dan rules
 
-- Pemilik = satu UID, tertulis di `firestore.rules` (`isOwner()`) dan `src/owner.ts`. Selama masih `OWNER_UID_BELUM_DIISI`, rules menolak semua akun. Cara mengisi: login Google sekali di situs, layar "Belum ada akses" menampilkan UID; ganti di dua file itu, `npm run lint`, `npm run deploy`.
+- Pemilik = satu UID, tertulis di `firestore.rules` (`isOwner()`) dan `src/owner.ts`. Sudah diisi dengan UID akun Google Surya. Untuk mengganti akun: login dengan akun baru, layar "Belum ada akses" menampilkan UID-nya; ganti di dua file itu, `npm run lint`, `npm run deploy`.
 - Rules deny-by-default, validasi tipe/panjang/enum/angka per koleksi, `createdAt`/`updatedAt` wajib `serverTimestamp()`. Enum di rules harus sama dengan `src/domain/types.ts`; tes rules mengiterasi enum dari file itu.
 - Setiap aturan baru wajib punya tes di `tests/rules/`. Tes juga memastikan data awal lolos validasi.
 
