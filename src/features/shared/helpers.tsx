@@ -47,7 +47,7 @@ export function LinkButton({ href, children, className }: { href: string; childr
       rel="noopener noreferrer"
       onClick={(e) => e.stopPropagation()}
       className={cn(
-        "inline-flex min-h-11 items-center justify-center gap-2 rounded-card border border-gray-200 bg-white px-4 font-semibold text-gray-900 hover:bg-gray-50",
+        "inline-flex min-h-11 items-center justify-center gap-2 rounded-card border border-gray-200 bg-surface px-4 font-semibold text-gray-900 hover:bg-gray-50",
         className,
       )}
     >

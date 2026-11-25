@@ -2,7 +2,7 @@ import { useId, type ReactNode } from "react";
 import { cn } from "../lib/cn";
 
 export const inputClass =
-  "block min-h-11 w-full rounded-card border border-gray-300 bg-white px-3 py-2 text-base text-gray-900 placeholder:text-gray-400 focus:border-accent focus:outline-2 focus:outline-accent/30 aria-[invalid=true]:border-late";
+  "block min-h-11 w-full rounded-card border border-gray-300 bg-surface px-3 py-2 text-base text-gray-900 placeholder:text-gray-400 focus:border-accent focus:outline-2 focus:outline-accent/30 aria-[invalid=true]:border-late";
 
 /** Label + input + petunjuk + pesan salah. Semua teks 16px. */
 export function Field({

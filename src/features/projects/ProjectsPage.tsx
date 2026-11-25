@@ -50,10 +50,13 @@ export default function ProjectsPage() {
       fields: FIELDS,
       filters: [
         {
+          // Enam status digabung jadi tiga kelompok; status persisnya ada di badge.
           label: "Status",
           options: [
             { value: "semua", label: "Semua", test: () => true },
-            ...PROJECT_STATUSES.map((s) => ({ value: s, label: s, test: (p: Project) => p.status === s })),
+            { value: "aktif", label: "Aktif", test: (p: Project) => IN_PROGRESS.has(p.status) },
+            { value: "live", label: "Live", test: (p: Project) => p.status === "Live" || p.status === "Maintenance" },
+            { value: "selesai", label: "Selesai", test: (p: Project) => p.status === "Selesai" },
           ],
         },
       ],

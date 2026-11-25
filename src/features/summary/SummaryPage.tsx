@@ -80,7 +80,7 @@ export default function SummaryPage() {
         {s.followUps.length === 0 ? (
           <EmptyState title="Semua aman">Tidak ada follow up, deadline, tagihan, atau perpanjangan yang dekat.</EmptyState>
         ) : (
-          <ul className="divide-y divide-gray-100 overflow-hidden rounded-card border border-gray-200 bg-white">
+          <ul className="divide-y divide-gray-100 overflow-hidden rounded-card border border-gray-200 bg-surface">
             {s.followUps.map((f) => (
               <li key={`${f.collection}/${f.id}`}>
                 <button
@@ -122,7 +122,7 @@ function StatCard({ label, value, detail, to }: { label: string; value: string; 
         e.preventDefault();
         navigate(to);
       }}
-      className="block rounded-card border border-gray-200 bg-white p-5 transition-colors hover:border-gray-300"
+      className="block rounded-card border border-gray-200 bg-surface p-5 transition-colors hover:border-gray-300"
     >
       <p className="text-gray-600">{label}</p>
       <p className="mt-1 text-3xl font-bold tabular-nums">{value}</p>

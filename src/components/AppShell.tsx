@@ -47,7 +47,7 @@ export function AppShell({ route, children }: { route: RoutePath; children: Reac
 
   return (
     <div className="min-h-dvh sm:flex">
-      <aside className="hidden w-60 shrink-0 flex-col border-r border-gray-200 bg-white p-4 sm:flex">
+      <aside className="hidden w-60 shrink-0 flex-col border-r border-gray-200 bg-surface p-4 sm:flex">
         <p className="px-3 pb-6 pt-2 text-lg font-bold">Freelance</p>
         <nav className="flex flex-1 flex-col gap-1">{ROUTES.map((r) => link(r.path, r.label, false))}</nav>
         <button
@@ -70,7 +70,7 @@ export function AppShell({ route, children }: { route: RoutePath; children: Reac
       </main>
 
       <nav
-        className="fixed inset-x-0 bottom-0 z-10 flex border-t border-gray-200 bg-white sm:hidden"
+        className="fixed inset-x-0 bottom-0 z-10 flex border-t border-gray-200 bg-surface sm:hidden"
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
         {ROUTES.map((r) => link(r.path, r.label, true))}

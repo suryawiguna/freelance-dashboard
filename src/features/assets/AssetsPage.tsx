@@ -32,8 +32,9 @@ export default function AssetsPage() {
       filters: [
         {
           label: "Jenis",
+          as: "select",
           options: [
-            { value: "semua", label: "Semua", test: () => true },
+            { value: "semua", label: "Semua jenis", test: () => true },
             ...ASSET_KINDS.map((s) => ({ value: s, label: s, test: (a: Asset) => a.kind === s })),
           ],
         },

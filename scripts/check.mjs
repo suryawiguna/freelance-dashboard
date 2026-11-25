@@ -5,6 +5,7 @@
  * - §7: tidak ada teks di bawah 16px (text-xs, text-sm, ukuran arbitrer kecil).
  * - §7: tidak ada em dash di teks UI.
  * - §6.2: hapus memakai konfirmasi di panel, bukan confirm().
+ * - §7 mode gelap: tidak ada warna putih/hitam tetap; pakai token surface.
  * - §4: UID pemilik di firestore.rules sama dengan src/owner.ts.
  */
 import { readdirSync, readFileSync, statSync } from "node:fs";
@@ -35,6 +36,11 @@ const RULES = [
     pattern: /—/,
     only: /\.tsx$/,
     message: "Em dash di teks UI (PLAN §7). Pakai titik, koma, atau titik dua.",
+  },
+  {
+    pattern: /\b(bg|text|border|from|to|via|fill|stroke)-white\b/,
+    only: /\.(ts|tsx)$/,
+    message: "Warna putih tetap merusak mode gelap. Pakai bg-surface / text-surface (src/index.css).",
   },
   {
     pattern: /\b(window\.)?confirm\(/,

@@ -27,6 +27,14 @@ export interface Column<T> {
 
 export interface ChipFilter<T> {
   label: string;
+  /**
+   * "chips" (bawaan) untuk filter utama: tahap atau status, sebaiknya maksimal
+   * lima pilihan (kelompokkan bila lebih). "select" untuk filter tambahan
+   * (sumber, jenis), tampil sebagai dropdown di sebelah pencarian.
+   */
+  as?: "chips" | "select";
+  /** Pilihan awal; bawaan pilihan pertama. */
+  initial?: string;
   options: readonly { value: string; label: string; test: (row: T) => boolean }[];
 }
 
@@ -65,7 +73,10 @@ export function CollectionPage<C extends CollectionName>({ config }: { config: P
   const loaded = data.loaded[config.collection];
   const editId = useEditId();
 
-  const [chips, setChips] = useState<string[]>(() => config.filters.map((f) => f.options[0]?.value ?? ""));
+  const [chips, setChips] = useState<string[]>(() =>
+    config.filters.map((f) => f.initial ?? f.options[0]?.value ?? ""),
+  );
+  const setFilter = (i: number, v: string) => setChips((c) => c.map((x, j) => (j === i ? v : x)));
   const [query, setQuery] = useState("");
 
   const visible = useMemo(() => {
@@ -104,26 +115,44 @@ export function CollectionPage<C extends CollectionName>({ config }: { config: P
       />
 
       <div className="mb-6 space-y-3">
-        {config.filters.map((f, i) => (
-          <ChipGroup
-            key={f.label}
-            label={f.label}
-            options={f.options.map((o) => ({ value: o.value, label: o.label, count: rows.filter(o.test).length }))}
-            value={chips[i]}
-            onChange={(v) => setChips((c) => c.map((x, j) => (j === i ? v : x)))}
-          />
-        ))}
-        <label className="relative block max-w-md">
-          <span className="sr-only">Cari nama</span>
-          <Search size={20} className="pointer-events-none absolute left-3 top-3 text-gray-400" aria-hidden />
-          <input
-            type="search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Cari nama"
-            className={cn(inputClass, "pl-10")}
-          />
-        </label>
+        {config.filters.map((f, i) =>
+          f.as === "select" ? null : (
+            <ChipGroup
+              key={f.label}
+              label={f.label}
+              options={f.options.map((o) => ({ value: o.value, label: o.label, count: rows.filter(o.test).length }))}
+              value={chips[i]}
+              onChange={(v) => setFilter(i, v)}
+            />
+          ),
+        )}
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <label className="relative block sm:w-80">
+            <span className="sr-only">Cari nama</span>
+            <Search size={20} className="pointer-events-none absolute left-3 top-3 text-gray-400" aria-hidden />
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Cari nama"
+              className={cn(inputClass, "pl-10")}
+            />
+          </label>
+          {config.filters.map((f, i) =>
+            f.as === "select" ? (
+              <label key={f.label} className="block sm:w-56">
+                <span className="sr-only">{f.label}</span>
+                <select value={chips[i]} onChange={(e) => setFilter(i, e.target.value)} className={inputClass}>
+                  {f.options.map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label} ({rows.filter(o.test).length})
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : null,
+          )}
+        </div>
       </div>
 
       {!loaded ? (
@@ -165,7 +194,7 @@ function DataList<C extends CollectionName>({ config, rows }: { config: PageConf
 
   return (
     <>
-      <div className="hidden overflow-hidden rounded-card border border-gray-200 bg-white sm:block">
+      <div className="hidden overflow-hidden rounded-card border border-gray-200 bg-surface sm:block">
         <table className="w-full border-collapse text-left">
           <thead className="border-b border-gray-200 bg-gray-50 text-gray-600">
             <tr>
@@ -213,7 +242,7 @@ function DataList<C extends CollectionName>({ config, rows }: { config: PageConf
             tabIndex={0}
             onClick={() => open(r.id)}
             onKeyDown={(e) => onKey(e, r.id)}
-            className="cursor-pointer rounded-card border border-gray-200 bg-white p-4 focus-visible:outline-2 focus-visible:outline-accent"
+            className="cursor-pointer rounded-card border border-gray-200 bg-surface p-4 focus-visible:outline-2 focus-visible:outline-accent"
           >
             {config.card(r)}
             {config.rowActions && (

@@ -95,15 +95,19 @@ export default function LeadsPage() {
       derive,
       filters: [
         {
+          // Baru, Kirim harga, dan Nego digabung jadi "Terbuka"; tahapnya tetap
+          // terlihat di badge tiap baris.
           label: "Tahap",
+          initial: "terbuka",
           options: [
-            { value: "semua", label: "Semua", test: () => true },
             { value: "terbuka", label: "Terbuka", test: isOpenLead },
-            ...LEAD_STAGES.map((s) => ({ value: s, label: s, test: (l: Lead) => l.stage === s })),
+            ...(["Deal", "On hold", "Tutup"] as const).map((s) => ({ value: s, label: s, test: (l: Lead) => l.stage === s })),
+            { value: "semua", label: "Semua", test: () => true },
           ],
         },
         {
           label: "Sumber",
+          as: "select",
           options: [
             { value: "semua", label: "Semua sumber", test: () => true },
             ...LEAD_SOURCES.map((s) => ({ value: s, label: s, test: (l: Lead) => l.source === s })),

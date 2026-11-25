@@ -26,7 +26,7 @@ export function ChipGroup<T extends string>({
               "min-h-11 rounded-full border px-4 transition-colors",
               active
                 ? "border-accent bg-accent-soft font-semibold text-accent"
-                : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50",
+                : "border-gray-200 bg-surface text-gray-700 hover:bg-gray-50",
             )}
           >
             {o.label}

@@ -12,7 +12,7 @@ export function UpdateBanner() {
   return (
     <div
       role="status"
-      className="fixed inset-x-4 bottom-24 z-40 mx-auto flex max-w-md flex-wrap items-center gap-3 rounded-card border border-gray-200 bg-white p-4 shadow-sm sm:bottom-6"
+      className="fixed inset-x-4 bottom-24 z-40 mx-auto flex max-w-md flex-wrap items-center gap-3 rounded-card border border-gray-200 bg-surface p-4 shadow-sm sm:bottom-6"
     >
       <p className="flex-1">Versi baru tersedia.</p>
       <Button onClick={() => setNeedRefresh(false)}>Nanti</Button>

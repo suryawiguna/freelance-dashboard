@@ -39,14 +39,14 @@ export function Drawer({
 
   return (
     <div className="fixed inset-0 z-30">
-      <div className="absolute inset-0 bg-gray-900/30" onClick={onClose} aria-hidden />
+      <div className="absolute inset-0 bg-black/50" onClick={onClose} aria-hidden />
       <div
         ref={panel}
         role="dialog"
         aria-modal="true"
         aria-label={title}
         tabIndex={-1}
-        className="absolute inset-0 flex flex-col bg-white outline-none sm:inset-y-0 sm:left-auto sm:w-[480px] sm:border-l sm:border-gray-200"
+        className="absolute inset-0 flex flex-col bg-surface outline-none sm:inset-y-0 sm:left-auto sm:w-[480px] sm:border-l sm:border-gray-200"
       >
         <header className="flex items-center justify-between gap-4 border-b border-gray-200 px-5 py-3">
           <h2 className="truncate text-lg font-bold">{title}</h2>

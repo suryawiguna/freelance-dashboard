@@ -33,13 +33,53 @@
   --color-late: #b91c1c;
   --color-late-soft: #fee2e2;
 
+  /* Permukaan kartu, panel, input. Dipakai juga sebagai warna teks di atas
+     tombol aksen/merah (text-surface), supaya tetap terbaca di mode gelap. */
+  --color-surface: #ffffff;
+
   --radius-card: 12px;
+}
+
+/*
+ * Mode gelap mengikuti sistem (PLAN §7). Komponen tidak memakai dark:, tetapi
+ * token yang sama dipetakan ulang di sini: skala abu-abu dibalik (gray-50 =
+ * latar paling gelap, gray-900 = teks paling terang), surface jadi gelap, dan
+ * warna aksen/status dibuat lebih terang supaya kontrasnya cukup. Aturan di
+ * kode: pakai bg-surface dan text-surface, bukan warna putih tetap.
+ */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-gray-50: oklch(14% 0.02 262);
+    --color-gray-100: oklch(25% 0.025 262);
+    --color-gray-200: oklch(30% 0.025 262);
+    --color-gray-300: oklch(38% 0.025 262);
+    --color-gray-400: oklch(54% 0.022 262);
+    --color-gray-500: oklch(68% 0.02 262);
+    --color-gray-600: oklch(76% 0.015 262);
+    --color-gray-700: oklch(84% 0.01 262);
+    --color-gray-800: oklch(90% 0.008 262);
+    --color-gray-900: oklch(96% 0.004 262);
+    --color-gray-950: oklch(98.5% 0.002 262);
+    --color-surface: oklch(19% 0.022 262);
+
+    --color-accent: #2dd4bf;
+    --color-accent-hover: #5eead4;
+    --color-accent-soft: #123c38;
+    --color-ok: #4ade80;
+    --color-ok-soft: #14321f;
+    --color-near: #facc15;
+    --color-near-soft: #3a3110;
+    --color-late: #f87171;
+    --color-late-soft: #421a1a;
+  }
 }
 
 @layer base {
   html {
     font-size: 16px;
     -webkit-text-size-adjust: 100%;
+    /* Input tanggal, select, dan scrollbar bawaan ikut terang/gelap. */
+    color-scheme: light dark;
   }
   body {
     @apply bg-gray-50 font-sans text-base text-gray-900 antialiased;

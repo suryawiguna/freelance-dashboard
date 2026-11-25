@@ -34,7 +34,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             role={t.kind === "error" ? "alert" : "status"}
             className={cn(
               "pointer-events-auto max-w-md rounded-card px-4 py-3 shadow-sm",
-              t.kind === "error" ? "bg-late text-white" : "bg-gray-900 text-white",
+              t.kind === "error" ? "bg-late text-surface" : "bg-gray-900 text-surface",
             )}
           >
             {t.text}
