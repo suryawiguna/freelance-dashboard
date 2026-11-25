@@ -1,0 +1,11 @@
+node_modules/
+dist/
+dev-dist/
+.firebase/
+*.log
+.DS_Store
+.env
+.env.local
+.env.*.local
+# Kredensial firebase-admin untuk scripts/seed.mjs, tidak pernah di-commit.
+*service*account*.json

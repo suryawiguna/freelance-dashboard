@@ -1,0 +1,82 @@
+/**
+ * Form generik untuk keempat koleksi. Nilai form selalu string (apa yang
+ * diketik), dikonversi ke record saat disimpan. Modul murni, dites.
+ */
+import { EMPTY, type CollectionName, type Draft, type Records } from "../../domain/records";
+import { validate, type Errors } from "../../domain/validate";
+import { parseRupiah } from "../../lib/money";
+
+export type FieldKind = "text" | "textarea" | "url" | "money" | "count" | "date" | "select";
+
+export interface FieldDef {
+  key: string;
+  label: string;
+  kind: FieldKind;
+  required?: boolean;
+  hint?: string;
+  placeholder?: string;
+  /** Untuk select. Nilai "" = pilihan kosong. */
+  options?: readonly { value: string; label: string }[];
+  /** Select dengan nilai kosong disimpan sebagai null (mis. projectId). */
+  nullable?: boolean;
+}
+
+export type FormValues = Record<string, string>;
+
+const groups = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 0 });
+
+/** 1400000 jadi "1.400.000" (tanpa "Rp", untuk isi input). */
+export const moneyInput = (n: number) => groups.format(n);
+
+export function toFormValues(fields: readonly FieldDef[], record: Record<string, unknown>): FormValues {
+  const out: FormValues = {};
+  for (const f of fields) {
+    const v = record[f.key];
+    if (v === null || v === undefined) out[f.key] = "";
+    else if (f.kind === "money" && typeof v === "number") out[f.key] = v === 0 && f.key === "amount" ? "" : moneyInput(v);
+    else out[f.key] = String(v);
+  }
+  return out;
+}
+
+export function fromFormValues<C extends CollectionName>(
+  c: C,
+  fields: readonly FieldDef[],
+  values: FormValues,
+  base: Draft<Records[C]> = EMPTY[c],
+): { draft: Draft<Records[C]>; errors: Errors } {
+  const draft: Record<string, unknown> = { ...base };
+  const parseErrors: Errors = {};
+  const empty = EMPTY[c] as unknown as Record<string, unknown>;
+
+  for (const f of fields) {
+    const raw = values[f.key] ?? "";
+    switch (f.kind) {
+      case "money": {
+        const n = parseRupiah(raw);
+        if (n === undefined) parseErrors[f.key] = "Tulis angka saja, contoh 1.400.000";
+        // Field wajib angka (amount) tidak boleh null; validate() menolak 0.
+        else draft[f.key] = n === null && empty[f.key] !== null ? 0 : n;
+        break;
+      }
+      case "count": {
+        const s = raw.trim();
+        if (s === "") draft[f.key] = null;
+        else if (/^\d+$/.test(s)) draft[f.key] = Number(s);
+        else parseErrors[f.key] = "Tulis angka bulat.";
+        break;
+      }
+      case "select":
+        draft[f.key] = f.nullable && raw === "" ? null : raw;
+        break;
+      case "textarea":
+        draft[f.key] = raw.trim();
+        break;
+      default:
+        draft[f.key] = raw.trim();
+    }
+  }
+
+  const typed = draft as Draft<Records[C]>;
+  return { draft: typed, errors: { ...validate(c, typed), ...parseErrors } };
+}

@@ -1,0 +1,143 @@
+rules_version = '2';
+
+// Dashboard freelance pribadi (docs/PLAN.md §4). Satu pengguna: pemilik.
+// Deny-by-default: koleksi yang tidak disebut di bawah tertutup untuk semua.
+// Setiap aturan di sini punya tes di tests/rules/.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // UID akun Google pemilik. Harus sama dengan OWNER_UID di src/owner.ts
+    // (npm run lint memeriksanya). Cara mengganti: lihat CLAUDE.md.
+    function isOwner() {
+      return request.auth != null && request.auth.uid == 'OWNER_UID_BELUM_DIISI';
+    }
+
+    // ---- Validator field ----
+
+    function str(v, max) {
+      return v is string && v.size() <= max;
+    }
+    function requiredStr(v, max) {
+      return str(v, max) && v.trim().size() > 0;
+    }
+    // Integer rupiah, tidak negatif, atau null.
+    function moneyOrNull(v) {
+      return v == null || (v is int && v >= 0 && v <= 100000000000);
+    }
+    function positiveMoney(v) {
+      return v is int && v > 0 && v <= 100000000000;
+    }
+    function countOrNull(v) {
+      return v == null || (v is int && v >= 1 && v <= 1000);
+    }
+    // "YYYY-MM-DD" atau "".
+    function dateOrEmpty(v) {
+      return v == '' || (v is string && v.matches('^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$'));
+    }
+    // https saja, atau "".
+    function urlOrEmpty(v) {
+      return v == '' || (str(v, 1000) && v.matches('^https://[^ ]+$'));
+    }
+    function idOrNull(v) {
+      return v == null || (v is string && v.size() > 0 && v.size() <= 200);
+    }
+
+    // createdAt dan updatedAt = serverTimestamp(). createdAt tidak berubah.
+    function stampsOnCreate(d) {
+      return d.createdAt == request.time && d.updatedAt == request.time;
+    }
+    function stampsOnUpdate(d) {
+      return d.createdAt == resource.data.createdAt && d.updatedAt == request.time;
+    }
+
+    // ---- leads ----
+
+    function validLead(d) {
+      return d.keys().hasAll(['name', 'stage', 'createdAt', 'updatedAt'])
+        && d.keys().hasOnly(['name', 'service', 'source', 'contact', 'stage', 'value', 'monthly',
+                             'branches', 'followUp', 'next', 'note', 'createdAt', 'updatedAt'])
+        && requiredStr(d.name, 200)
+        && str(d.get('service', ''), 200)
+        && d.get('source', '') in ['', 'Threads', 'Instagram', 'WhatsApp', 'Referral', 'Website', 'Lainnya']
+        && urlOrEmpty(d.get('contact', ''))
+        && d.stage in ['Baru', 'Kirim harga', 'Nego', 'Deal', 'On hold', 'Tutup']
+        && moneyOrNull(d.get('value', null))
+        && moneyOrNull(d.get('monthly', null))
+        && countOrNull(d.get('branches', null))
+        && dateOrEmpty(d.get('followUp', ''))
+        && str(d.get('next', ''), 1000)
+        && str(d.get('note', ''), 5000);
+    }
+
+    match /leads/{id} {
+      allow read, delete: if isOwner();
+      allow create: if isOwner() && validLead(request.resource.data) && stampsOnCreate(request.resource.data);
+      allow update: if isOwner() && validLead(request.resource.data) && stampsOnUpdate(request.resource.data);
+    }
+
+    // ---- projects ----
+
+    function validProject(d) {
+      return d.keys().hasAll(['client', 'status', 'createdAt', 'updatedAt'])
+        && d.keys().hasOnly(['client', 'leadId', 'name', 'status', 'monthly', 'due', 'link', 'next',
+                             'createdAt', 'updatedAt'])
+        && requiredStr(d.client, 200)
+        && idOrNull(d.get('leadId', null))
+        && str(d.get('name', ''), 200)
+        && d.status in ['Belum mulai', 'Dikerjakan', 'Revisi', 'Live', 'Maintenance', 'Selesai']
+        && moneyOrNull(d.get('monthly', null))
+        && dateOrEmpty(d.get('due', ''))
+        && urlOrEmpty(d.get('link', ''))
+        && str(d.get('next', ''), 1000);
+    }
+
+    match /projects/{id} {
+      allow read, delete: if isOwner();
+      allow create: if isOwner() && validProject(request.resource.data) && stampsOnCreate(request.resource.data);
+      allow update: if isOwner() && validProject(request.resource.data) && stampsOnUpdate(request.resource.data);
+    }
+
+    // ---- payments ----
+
+    function validPayment(d) {
+      return d.keys().hasAll(['client', 'type', 'amount', 'status', 'createdAt', 'updatedAt'])
+        && d.keys().hasOnly(['client', 'projectId', 'item', 'type', 'amount', 'due', 'status', 'paidAt',
+                             'createdAt', 'updatedAt'])
+        && requiredStr(d.client, 200)
+        && idOrNull(d.get('projectId', null))
+        && str(d.get('item', ''), 200)
+        && d.type in ['DP', 'Pelunasan', 'Setup', 'Langganan', 'Lainnya']
+        && positiveMoney(d.amount)
+        && dateOrEmpty(d.get('due', ''))
+        && d.status in ['Belum', 'Lunas']
+        && dateOrEmpty(d.get('paidAt', ''));
+    }
+
+    match /payments/{id} {
+      allow read, delete: if isOwner();
+      allow create: if isOwner() && validPayment(request.resource.data) && stampsOnCreate(request.resource.data);
+      allow update: if isOwner() && validPayment(request.resource.data) && stampsOnUpdate(request.resource.data);
+    }
+
+    // ---- assets ----
+
+    function validAsset(d) {
+      return d.keys().hasAll(['client', 'kind', 'createdAt', 'updatedAt'])
+        && d.keys().hasOnly(['client', 'item', 'kind', 'provider', 'cost', 'renewal', 'note',
+                             'createdAt', 'updatedAt'])
+        && requiredStr(d.client, 200)
+        && str(d.get('item', ''), 200)
+        && d.kind in ['Domain', 'Hosting', 'Firebase', 'Cloudflare', 'Lainnya']
+        && str(d.get('provider', ''), 200)
+        && moneyOrNull(d.get('cost', null))
+        && dateOrEmpty(d.get('renewal', ''))
+        && str(d.get('note', ''), 5000);
+    }
+
+    match /assets/{id} {
+      allow read, delete: if isOwner();
+      allow create: if isOwner() && validAsset(request.resource.data) && stampsOnCreate(request.resource.data);
+      allow update: if isOwner() && validAsset(request.resource.data) && stampsOnUpdate(request.resource.data);
+    }
+  }
+}

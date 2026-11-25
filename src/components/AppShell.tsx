@@ -1,0 +1,80 @@
+import { Briefcase, CreditCard, LayoutDashboard, LogOut, Server, Users } from "lucide-react";
+import type { ReactNode } from "react";
+import { useData } from "../data/DataContext";
+import { useAuth } from "../features/auth/AuthContext";
+import { cn } from "../lib/cn";
+import { navigate, ROUTES, type RoutePath } from "../lib/route";
+
+const ICONS: Record<RoutePath, typeof Users> = {
+  "/": LayoutDashboard,
+  "/lead": Users,
+  "/proyek": Briefcase,
+  "/tagihan": CreditCard,
+  "/aset": Server,
+};
+
+/** Sidebar di desktop, bottom tab bar di HP (di bawah 640px). */
+export function AppShell({ route, children }: { route: RoutePath; children: ReactNode }) {
+  const { logout } = useAuth();
+  const { error } = useData();
+
+  const link = (path: RoutePath, label: string, compact: boolean) => {
+    const Icon = ICONS[path];
+    const active = route === path;
+    return (
+      <a
+        key={path}
+        href={path}
+        aria-current={active ? "page" : undefined}
+        onClick={(e) => {
+          if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+          e.preventDefault();
+          navigate(path);
+        }}
+        className={cn(
+          "flex min-h-11 items-center rounded-card transition-colors",
+          compact ? "flex-auto flex-col justify-center gap-0.5 px-1 py-1" : "gap-3 px-3",
+          active ? "text-accent" : "text-gray-600 hover:text-gray-900",
+          !compact && active && "bg-accent-soft",
+          !compact && !active && "hover:bg-gray-100",
+        )}
+      >
+        <Icon size={compact ? 22 : 20} aria-hidden />
+        <span className={cn(active && "font-semibold")}>{label}</span>
+      </a>
+    );
+  };
+
+  return (
+    <div className="min-h-dvh sm:flex">
+      <aside className="hidden w-60 shrink-0 flex-col border-r border-gray-200 bg-white p-4 sm:flex">
+        <p className="px-3 pb-6 pt-2 text-lg font-bold">Freelance</p>
+        <nav className="flex flex-1 flex-col gap-1">{ROUTES.map((r) => link(r.path, r.label, false))}</nav>
+        <button
+          type="button"
+          onClick={() => void logout()}
+          className="flex min-h-11 items-center gap-3 rounded-card px-3 text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+        >
+          <LogOut size={20} aria-hidden />
+          Keluar
+        </button>
+      </aside>
+
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-28 pt-6 sm:px-8 sm:pb-10 sm:pt-10">
+        {error && (
+          <p role="alert" className="mb-6 rounded-card bg-late-soft px-4 py-3 text-late">
+            {error}
+          </p>
+        )}
+        {children}
+      </main>
+
+      <nav
+        className="fixed inset-x-0 bottom-0 z-10 flex border-t border-gray-200 bg-white sm:hidden"
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      >
+        {ROUTES.map((r) => link(r.path, r.label, true))}
+      </nav>
+    </div>
+  );
+}

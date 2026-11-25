@@ -1,0 +1,58 @@
+@import "tailwindcss";
+
+/*
+ * Design (PLAN §7). Skala teks dikunci: semua bawaan Tailwind dihapus lalu
+ * hanya empat ukuran yang dibuat, jadi ukuran kecil (xs, sm) dan xl tidak ada
+ * sama sekali. scripts/check.mjs juga menolaknya di kode.
+ *   text-base 16  body, label, chip, caption, tabel, input, tombol
+ *   text-lg   18  subjudul
+ *   text-2xl  24  judul halaman
+ *   text-3xl  32  angka kartu
+ */
+@theme {
+  --font-sans: "Nunito", ui-sans-serif, system-ui, sans-serif;
+
+  --text-*: initial;
+  --text-base: 1rem;
+  --text-base--line-height: 1.5rem;
+  --text-lg: 1.125rem;
+  --text-lg--line-height: 1.75rem;
+  --text-2xl: 1.5rem;
+  --text-2xl--line-height: 2rem;
+  --text-3xl: 2rem;
+  --text-3xl--line-height: 2.5rem;
+
+  /* Satu warna aksen. Status: ok (hijau), dekat (kuning), lewat (merah). */
+  --color-accent: #0f766e;
+  --color-accent-hover: #0d645e;
+  --color-accent-soft: #e7f2f1;
+  --color-ok: #15803d;
+  --color-ok-soft: #dcfce7;
+  --color-near: #a16207;
+  --color-near-soft: #fef9c3;
+  --color-late: #b91c1c;
+  --color-late-soft: #fee2e2;
+
+  --radius-card: 12px;
+}
+
+@layer base {
+  html {
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-gray-50 font-sans text-base text-gray-900 antialiased;
+    font-variant-numeric: tabular-nums;
+  }
+  /* Input di bawah 16px memicu zoom otomatis di iOS. */
+  input,
+  select,
+  textarea,
+  button,
+  small,
+  sub,
+  sup {
+    font-size: 1rem;
+  }
+}
