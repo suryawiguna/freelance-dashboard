@@ -2,7 +2,8 @@
 /**
  * Bagian dari `npm run lint`. Menjaga aturan PLAN yang tidak bisa dicek tsc:
  * - §8: semua akses Firestore lewat src/data/repo.ts.
- * - §7: tidak ada teks di bawah 16px (text-xs, text-sm, ukuran arbitrer kecil).
+ * - §7: hanya skala teks yang dikunci di theme (tanpa text-xs, text-sm, ukuran
+ *   arbitrer, atau font-size kecil dalam px). Ukuran desktop diatur di html.
  * - §7: tidak ada em dash di teks UI.
  * - §6.2: aksi berbahaya memakai useConfirm() (dialog sendiri), bukan confirm().
  * - §7 mode gelap: tidak ada warna putih/hitam tetap; pakai token surface.
@@ -27,7 +28,7 @@ const RULES = [
   {
     pattern: /\btext-(xs|sm|\[(?:\d|\.)[^\]]*\])/,
     only: /\.(ts|tsx|css)$/,
-    message: "Ukuran teks di bawah 16px atau arbitrer. Pakai text-base, text-lg, text-2xl, atau text-3xl (PLAN §7).",
+    message: "Ukuran teks di luar skala atau arbitrer. Pakai text-base, text-lg, text-2xl, atau text-3xl (PLAN §7).",
   },
   {
     pattern: /font-size:\s*(?:0?\.\d+rem|(?:[0-9]|1[0-5])(?:\.\d+)?px|0?\.\d+em|small|x-small|xx-small|smaller)/,

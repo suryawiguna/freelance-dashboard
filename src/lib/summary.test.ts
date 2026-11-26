@@ -33,7 +33,7 @@ describe("data awal (PLAN §10)", () => {
 });
 
 describe("lead terbuka", () => {
-  it("hanya Baru, Kirim harga, Nego; nilai kosong dihitung 0", () => {
+  it("hanya Baru, Menunggu kabar, Kirim harga, Nego; nilai kosong dihitung 0", () => {
     const s = summarize(
       {
         ...empty,
@@ -41,6 +41,7 @@ describe("lead terbuka", () => {
           lead("a", { stage: "Baru", value: null }),
           lead("b", { stage: "Kirim harga", value: 100 }),
           lead("c", { stage: "Nego", value: 200 }),
+          lead("g", { stage: "Menunggu kabar", value: 50 }),
           lead("d", { stage: "Deal", value: 1000 }),
           lead("e", { stage: "On hold", value: 1000 }),
           lead("f", { stage: "Tutup", value: 1000 }),
@@ -48,7 +49,7 @@ describe("lead terbuka", () => {
       },
       TODAY,
     );
-    expect(s.openLeads).toEqual({ count: 3, setupTotal: 300 });
+    expect(s.openLeads).toEqual({ count: 4, setupTotal: 350 });
   });
 });
 

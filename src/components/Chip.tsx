@@ -6,14 +6,25 @@ export function ChipGroup<T extends string>({
   options,
   value,
   onChange,
+  labelledBy,
+  describedBy,
 }: {
   label: string;
   options: readonly { value: T; label: string; count?: number }[];
   value: T;
   onChange: (v: T) => void;
+  /** Di dalam form: id label Field, menggantikan aria-label. */
+  labelledBy?: string;
+  describedBy?: string;
 }) {
   return (
-    <div role="group" aria-label={label} className="flex flex-wrap gap-2">
+    <div
+      role="group"
+      aria-label={labelledBy ? undefined : label}
+      aria-labelledby={labelledBy}
+      aria-describedby={describedBy}
+      className="flex flex-wrap gap-2"
+    >
       {options.map((o) => {
         const active = o.value === value;
         return (

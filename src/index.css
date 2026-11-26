@@ -4,10 +4,12 @@
  * Design (PLAN §7). Skala teks dikunci: semua bawaan Tailwind dihapus lalu
  * hanya empat ukuran yang dibuat, jadi ukuran kecil (xs, sm) dan xl tidak ada
  * sama sekali. scripts/check.mjs juga menolaknya di kode.
- *   text-base 16  body, label, chip, caption, tabel, input, tombol
- *   text-lg   18  subjudul
- *   text-2xl  24  judul halaman
- *   text-3xl  32  angka kartu
+ * Semua dalam rem. Dasar 16px di HP/tablet, 14px mulai 1024px (lihat html di
+ * bawah), jadi angka kedua = ukuran di desktop:
+ *   text-base 16 / 14  body, label, chip, caption, tabel, input, tombol
+ *   text-lg   18 / 15.75  subjudul
+ *   text-2xl  24 / 21  judul halaman
+ *   text-3xl  32 / 28  angka kartu
  */
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
@@ -151,11 +153,20 @@
     /* Input tanggal, select, dan scrollbar bawaan ikut terang/gelap. */
     color-scheme: light dark;
   }
+  /* Desktop: dasar 14px seperti dashboard pada umumnya. Teks, jarak, dan
+     tinggi tombol ikut mengecil karena semuanya rem. HP tetap 16px (input di
+     bawah 16px memicu zoom otomatis di iOS). Media query rem memakai 16px
+     bawaan browser, jadi 64rem tetap 1024px. */
+  @media (min-width: 64rem) {
+    html {
+      font-size: 87.5%; /* 14px dari 16px bawaan */
+    }
+  }
   body {
     @apply bg-gray-50 font-sans text-base text-gray-900 antialiased;
     font-variant-numeric: tabular-nums;
   }
-  /* Input di bawah 16px memicu zoom otomatis di iOS. */
+  /* Input ikut ukuran dasar (16px di HP: di bawah itu iOS zoom otomatis). */
   input,
   select,
   textarea,

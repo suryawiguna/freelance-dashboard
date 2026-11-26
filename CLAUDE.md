@@ -29,7 +29,7 @@ npm run deploy          # lint + tes + build + hosting + firestore.rules. Butuh 
 ## Aturan yang dijaga `npm run lint` (scripts/check.mjs)
 
 - Semua akses Firestore lewat `src/data/repo.ts`.
-- Tidak ada teks di bawah 16px. Skala teks hanya `text-base` (16), `text-lg` (18), `text-2xl` (24), `text-3xl` (32); ukuran lain dihapus dari theme di `src/index.css`.
+- Skala teks hanya `text-base`, `text-lg`, `text-2xl`, `text-3xl` (16/18/24/32 di HP, 14/15,75/21/28 di desktop lewat `html { font-size: 87.5% }` mulai 1024px); ukuran lain dihapus dari theme di `src/index.css`. Ukuran apa pun pakai rem, bukan px.
 - Tidak ada em dash di `.tsx`, tidak ada `confirm()`.
 - UID pemilik di `firestore.rules` sama dengan `src/owner.ts`.
 
@@ -45,7 +45,7 @@ npm run deploy          # lint + tes + build + hosting + firestore.rules. Butuh 
 - `src/data/DataContext.tsx`: satu `onSnapshot` per koleksi untuk seluruh aplikasi (lewat `repo.watch`). Dokumen dinormalisasi oleh `domain/records.ts` (field hilang diisi nilai kosong).
 - Penulisan tidak di-`await` sampai server menjawab (offline persistence): panel langsung tertutup, error ditampilkan lewat toast.
 - Panel edit = `?edit=<id>` atau `?edit=baru` di URL; membuka panel menambah entri history, jadi Back menutupnya. Ringkasan membuka panel di halaman lain lewat `openEdit(id, path)`.
-- Komponen inti dari pustaka ringan, diberi gaya sendiri (16px, token warna, mode gelap): `Drawer` dan `ConfirmDialog` (`useConfirm()`) di atas Radix Dialog/AlertDialog, `Select` di atas Radix Select (value "" dipetakan ke sentinel), `DatePicker` = Radix Popover + react-day-picker (locale id, minggu mulai Senin, gaya hari di `.cal-day` index.css), `useToast()` = sonner lewat `toast.custom`. Aksi berbahaya (hapus, keluar, buang perubahan) wajib lewat `useConfirm()`. Lint menolak `<select>`, `type="date"`, dan `confirm()` bawaan.
+- Komponen inti dari pustaka ringan, diberi gaya sendiri (text-base, token warna, mode gelap): `Drawer` dan `ConfirmDialog` (`useConfirm()`) di atas Radix Dialog/AlertDialog, `Select` di atas Radix Select (value "" dipetakan ke sentinel), `DatePicker` = Radix Popover + react-day-picker (locale id, minggu mulai Senin, gaya hari di `.cal-day` index.css), `useToast()` = sonner lewat `toast.custom`. Aksi berbahaya (hapus, keluar, buang perubahan) wajib lewat `useConfirm()`. Lint menolak `<select>`, `type="date"`, dan `confirm()` bawaan.
 - Mode gelap mengikuti sistem lewat token di `src/index.css`; pakai `bg-surface`/`text-surface`, bukan putih tetap (dijaga lint).
-- Keempat halaman memakai `features/shared/CollectionPage.tsx` dengan konfigurasi per koleksi (kolom, kartu HP, filter chip, form, CSV). Form generik di `features/shared/formModel.ts` (murni, dites).
+- Keempat halaman memakai `features/shared/CollectionPage.tsx` dengan konfigurasi per koleksi (kolom, kartu HP, filter chip, form, CSV). Form generik di `features/shared/formModel.ts` (murni, dites): field punya `section` (judul bagian, yang sering diubah di atas; data baru menaruh bagian berisi isian wajib di atas), `half` (dua kolom), dan kind `choice` (tahap/status sebagai chip).
 - Angka ringkasan dan daftar tindak lanjut: `src/lib/summary.ts` (murni, dites; `WINDOW` berisi jendela hari).

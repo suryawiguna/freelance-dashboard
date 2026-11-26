@@ -6,7 +6,8 @@ import { EMPTY, type CollectionName, type Draft, type Records } from "../../doma
 import { validate, type Errors } from "../../domain/validate";
 import { parseRupiah } from "../../lib/money";
 
-export type FieldKind = "text" | "textarea" | "url" | "contact" | "money" | "count" | "date" | "select";
+/** "choice" = select yang tampil sebagai deretan chip (tahap/status, sekali klik). */
+export type FieldKind = "text" | "textarea" | "url" | "contact" | "money" | "count" | "date" | "select" | "choice";
 
 export interface FieldDef {
   key: string;
@@ -19,6 +20,33 @@ export interface FieldDef {
   options?: readonly { value: string; label: string }[];
   /** Select dengan nilai kosong disimpan sebagai null (mis. projectId). */
   nullable?: boolean;
+  /** Judul bagian form. Field berurutan dengan judul sama dikelompokkan. */
+  section?: string;
+  /** Setengah lebar (dua kolom) mulai layar sm. */
+  half?: boolean;
+}
+
+export interface FormSection {
+  title: string;
+  fields: FieldDef[];
+}
+
+/**
+ * Kelompokkan field per bagian, urut kemunculan pertama. Saat menambah data
+ * baru, bagian yang berisi isian wajib dipindah ke atas supaya diisi dulu;
+ * saat mengedit, urutan konfigurasi dipakai (yang sering diubah di atas).
+ */
+export function formSections(fields: readonly FieldDef[], isNew: boolean): FormSection[] {
+  const sections: FormSection[] = [];
+  for (const f of fields) {
+    const title = f.section ?? "";
+    const s = sections.find((x) => x.title === title);
+    if (s) s.fields.push(f);
+    else sections.push({ title, fields: [f] });
+  }
+  if (!isNew) return sections;
+  const hasRequired = (s: FormSection) => s.fields.some((f) => f.required);
+  return [...sections.filter(hasRequired), ...sections.filter((s) => !hasRequired(s))];
 }
 
 export type FormValues = Record<string, string>;
@@ -68,6 +96,7 @@ export function fromFormValues<C extends CollectionName>(
         break;
       }
       case "select":
+      case "choice":
         draft[f.key] = f.nullable && raw === "" ? null : raw;
         break;
       case "textarea":

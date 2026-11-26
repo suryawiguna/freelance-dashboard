@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { EMPTY } from "../../domain/records";
-import { fromFormValues, toFormValues, type FieldDef } from "./formModel";
+import { formSections, fromFormValues, toFormValues, type FieldDef } from "./formModel";
 
 const LEAD_FIELDS: FieldDef[] = [
   { key: "name", label: "Nama", kind: "text", required: true },
@@ -70,5 +70,36 @@ describe("fromFormValues", () => {
     expect(toFormValues(fields, mail.draft).contact).toBe("halo@contoh.com");
     expect(fromFormValues("leads", fields, { name: "A", contact: "https://t/x" }).draft.contact).toBe("https://t/x");
     expect(fromFormValues("leads", fields, { name: "A", contact: "halo@contoh" }).errors).toHaveProperty("contact");
+  });
+});
+
+describe("formSections", () => {
+  const fields: FieldDef[] = [
+    { key: "stage", label: "Tahap", kind: "choice", section: "Tindak lanjut" },
+    { key: "followUp", label: "Follow up", kind: "date", section: "Tindak lanjut" },
+    { key: "name", label: "Nama", kind: "text", required: true, section: "Calon klien" },
+    { key: "value", label: "Nilai", kind: "money", section: "Nilai" },
+    { key: "next", label: "Berikutnya", kind: "text", section: "Tindak lanjut" },
+  ];
+  const shape = (isNew: boolean) => formSections(fields, isNew).map((s) => [s.title, s.fields.map((f) => f.key)]);
+
+  it("mengedit: urutan konfigurasi, field sebagian dikumpulkan", () => {
+    expect(shape(false)).toEqual([
+      ["Tindak lanjut", ["stage", "followUp", "next"]],
+      ["Calon klien", ["name"]],
+      ["Nilai", ["value"]],
+    ]);
+  });
+  it("data baru: bagian dengan isian wajib di atas", () => {
+    expect(shape(true).map(([t]) => t)).toEqual(["Calon klien", "Tindak lanjut", "Nilai"]);
+  });
+  it("tanpa section: satu bagian tanpa judul", () => {
+    expect(formSections([{ key: "a", label: "A", kind: "text" }], false)).toEqual([
+      { title: "", fields: [{ key: "a", label: "A", kind: "text" }] },
+    ]);
+  });
+  it("choice disimpan seperti select", () => {
+    const { draft } = fromFormValues("leads", [{ key: "stage", label: "Tahap", kind: "choice" }], { stage: "Menunggu kabar" });
+    expect(draft.stage).toBe("Menunggu kabar");
   });
 });

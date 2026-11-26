@@ -22,14 +22,15 @@ const STATUS_TONE: Record<ProjectStatus, Tone> = {
 
 const IN_PROGRESS = new Set<ProjectStatus>(["Belum mulai", "Dikerjakan", "Revisi"]);
 
+// Urutan = urutan di panel edit: yang paling sering diubah di atas.
 const FIELDS: FieldDef[] = [
-  { key: "client", label: "Klien", kind: "text", required: true },
-  { key: "name", label: "Nama proyek", kind: "text" },
-  { key: "status", label: "Status", kind: "select", options: PROJECT_STATUSES.map((s) => ({ value: s, label: s })) },
-  { key: "monthly", label: "Biaya langganan bulanan", kind: "money" },
-  { key: "due", label: "Deadline", kind: "date" },
-  { key: "link", label: "Link proyek atau demo", kind: "url", placeholder: "https://" },
-  { key: "next", label: "Langkah berikutnya", kind: "text" },
+  { key: "status", label: "Status", kind: "choice", section: "Progres", options: PROJECT_STATUSES.map((s) => ({ value: s, label: s })) },
+  { key: "due", label: "Deadline", kind: "date", section: "Progres", half: true },
+  { key: "next", label: "Langkah berikutnya", kind: "text", section: "Progres" },
+  { key: "client", label: "Klien", kind: "text", required: true, section: "Proyek", half: true },
+  { key: "name", label: "Nama proyek", kind: "text", section: "Proyek", half: true },
+  { key: "link", label: "Link proyek atau demo", kind: "url", placeholder: "https://", section: "Proyek" },
+  { key: "monthly", label: "Biaya langganan bulanan", kind: "money", section: "Proyek", half: true },
 ];
 
 const sortProjects = (a: Project, b: Project) =>

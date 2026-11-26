@@ -27,12 +27,19 @@ export default function PaymentsPage() {
   const today = todayWita();
 
   const config = useMemo<PageConfig<"payments">>(() => {
+    // Urutan = urutan di panel edit: status pembayaran di atas.
+    const PAY = "Pembayaran";
+    const BILL = "Tagihan";
     const fields: FieldDef[] = [
+      { key: "status", label: "Status", kind: "choice", section: PAY, options: PAYMENT_STATUSES.map((s) => ({ value: s, label: s })) },
+      { key: "due", label: "Jatuh tempo", kind: "date", section: PAY, half: true },
+      { key: "paidAt", label: "Tanggal dibayar", kind: "date", section: PAY, half: true, hint: "Terisi hari ini saat Lunas." },
       {
         key: "projectId",
         label: "Proyek",
         kind: "select",
         nullable: true,
+        section: BILL,
         hint: "Opsional. Klien terisi otomatis dari proyek.",
         options: [
           { value: "", label: "Tanpa proyek" },
@@ -41,13 +48,10 @@ export default function PaymentsPage() {
             .map((p) => ({ value: p.id, label: p.name ? `${p.client}: ${p.name}` : p.client })),
         ],
       },
-      { key: "client", label: "Klien", kind: "text", required: true },
-      { key: "item", label: "Item", kind: "text", placeholder: "No. invoice atau bulan", hint: "Contoh: INV-012, Langganan Des 2026" },
-      { key: "type", label: "Jenis", kind: "select", options: PAYMENT_TYPES.map((s) => ({ value: s, label: s })) },
-      { key: "amount", label: "Jumlah", kind: "money", required: true },
-      { key: "due", label: "Jatuh tempo", kind: "date" },
-      { key: "status", label: "Status", kind: "select", options: PAYMENT_STATUSES.map((s) => ({ value: s, label: s })) },
-      { key: "paidAt", label: "Tanggal dibayar", kind: "date", hint: "Terisi hari ini saat status diubah ke Lunas." },
+      { key: "client", label: "Klien", kind: "text", required: true, section: BILL },
+      { key: "item", label: "Item", kind: "text", section: BILL, placeholder: "No. invoice atau bulan", hint: "Contoh: INV-012, Langganan Des 2026" },
+      { key: "amount", label: "Jumlah", kind: "money", required: true, section: BILL, half: true },
+      { key: "type", label: "Jenis", kind: "select", section: BILL, half: true, options: PAYMENT_TYPES.map((s) => ({ value: s, label: s })) },
     ];
 
     const derive = (key: string, next: FormValues): FormValues => {

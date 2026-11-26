@@ -64,7 +64,7 @@ service cloud.firestore {
         && str(d.get('service', ''), 200)
         && d.get('source', '') in ['', 'Threads', 'Instagram', 'WhatsApp', 'Email', 'Referral', 'Website', 'Lainnya']
         && contactOrEmpty(d.get('contact', ''))
-        && d.stage in ['Baru', 'Kirim harga', 'Nego', 'Deal', 'On hold', 'Tutup']
+        && d.stage in ['Baru', 'Menunggu kabar', 'Kirim harga', 'Nego', 'Deal', 'On hold', 'Tutup']
         && moneyOrNull(d.get('value', null))
         && moneyOrNull(d.get('monthly', null))
         && countOrNull(d.get('branches', null))

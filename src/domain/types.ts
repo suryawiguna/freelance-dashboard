@@ -10,11 +10,14 @@ export type DateStr = string;
 export const LEAD_SOURCES = ["Threads", "Instagram", "WhatsApp", "Email", "Referral", "Website", "Lainnya"] as const;
 export type LeadSource = (typeof LEAD_SOURCES)[number];
 
-export const LEAD_STAGES = ["Baru", "Kirim harga", "Nego", "Deal", "On hold", "Tutup"] as const;
+export const LEAD_STAGES = ["Baru", "Menunggu kabar", "Kirim harga", "Nego", "Deal", "On hold", "Tutup"] as const;
 export type LeadStage = (typeof LEAD_STAGES)[number];
 
-/** Lead terbuka = masih dikejar. */
-export const OPEN_LEAD_STAGES: readonly LeadStage[] = ["Baru", "Kirim harga", "Nego"];
+/**
+ * Lead terbuka = masih dikejar. "Menunggu kabar" = sudah di-follow up, bola di
+ * calon klien; tetap terbuka supaya pengingat follow up-nya tetap muncul.
+ */
+export const OPEN_LEAD_STAGES: readonly LeadStage[] = ["Baru", "Menunggu kabar", "Kirim harga", "Nego"];
 
 export const PROJECT_STATUSES = ["Belum mulai", "Dikerjakan", "Revisi", "Live", "Maintenance", "Selesai"] as const;
 export type ProjectStatus = (typeof PROJECT_STATUSES)[number];

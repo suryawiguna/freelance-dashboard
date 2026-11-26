@@ -7,14 +7,15 @@ import { CollectionPage, type PageConfig } from "../shared/CollectionPage";
 import type { FieldDef } from "../shared/formModel";
 import { byDate, byText, CardLine, Money, Muted } from "../shared/helpers";
 
+// Urutan = urutan di panel edit: perpanjangan (yang sering diubah) di atas.
 const FIELDS: FieldDef[] = [
-  { key: "client", label: "Klien", kind: "text", required: true },
-  { key: "item", label: "Item", kind: "text", placeholder: "contoh.com, nama project Firebase" },
-  { key: "kind", label: "Jenis", kind: "select", options: ASSET_KINDS.map((s) => ({ value: s, label: s })) },
-  { key: "provider", label: "Provider", kind: "text" },
-  { key: "cost", label: "Biaya per tahun", kind: "money" },
-  { key: "renewal", label: "Tanggal perpanjangan", kind: "date" },
-  { key: "note", label: "Catatan", kind: "textarea" },
+  { key: "renewal", label: "Tanggal perpanjangan", kind: "date", section: "Perpanjangan", half: true },
+  { key: "cost", label: "Biaya per tahun", kind: "money", section: "Perpanjangan", half: true },
+  { key: "client", label: "Klien", kind: "text", required: true, section: "Aset" },
+  { key: "item", label: "Item", kind: "text", placeholder: "contoh.com, nama project Firebase", section: "Aset" },
+  { key: "kind", label: "Jenis", kind: "choice", section: "Aset", options: ASSET_KINDS.map((s) => ({ value: s, label: s })) },
+  { key: "provider", label: "Provider", kind: "text", section: "Aset" },
+  { key: "note", label: "Catatan", kind: "textarea", section: "Aset" },
 ];
 
 const sortAssets = (a: Asset, b: Asset) => byDate(a.renewal, b.renewal) || byText(a.client, b.client);

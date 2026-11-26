@@ -367,6 +367,8 @@ function EditPanel<C extends CollectionName>({ config, record }: { config: PageC
     </div>
   );
 
+  const extras = config.panelExtras?.({ record, values, setValue, saveNow });
+
   return (
     <Drawer
       title={record ? config.drawerTitle(record) : `Tambah ${config.noun}`}
@@ -380,8 +382,8 @@ function EditPanel<C extends CollectionName>({ config, record }: { config: PageC
           onSave();
         }}
       >
-        {config.panelExtras && <div className="mb-6">{config.panelExtras({ record, values, setValue, saveNow })}</div>}
-        <RecordForm fields={config.fields} values={values} errors={errors} onChange={setValue} />
+        {extras && <div className="mb-6">{extras}</div>}
+        <RecordForm fields={config.fields} values={values} errors={errors} onChange={setValue} isNew={!record} />
         {Object.keys(errors).length > 0 && (
           <p role="alert" className="mt-5 text-late">
             Periksa isian yang ditandai.

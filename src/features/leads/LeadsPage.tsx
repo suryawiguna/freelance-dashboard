@@ -19,6 +19,7 @@ import { byDate, byText, CardLine, LinkButton, Money, Muted } from "../shared/he
 const STAGE_TONE: Record<LeadStage, Tone> = {
   // Netral seperti chip di suryawiguna.com; oranye khusus untuk aksi.
   Baru: "neutral",
+  "Menunggu kabar": "neutral",
   "Kirim harga": "neutral",
   Nego: "neutral",
   Deal: "ok",
@@ -26,34 +27,36 @@ const STAGE_TONE: Record<LeadStage, Tone> = {
   Tutup: "neutral",
 };
 
+// Urutan = urutan di panel edit: yang paling sering diubah di atas.
+const FOLLOW = "Tindak lanjut";
+const CLIENT = "Calon klien";
+const VALUE = "Nilai";
 const FIELDS: FieldDef[] = [
-  { key: "name", label: "Nama", kind: "text", required: true },
-  { key: "service", label: "Layanan", kind: "text", placeholder: "Kasir (2 cabang)" },
+  { key: "stage", label: "Tahap", kind: "choice", section: FOLLOW, options: LEAD_STAGES.map((s) => ({ value: s, label: s })) },
+  { key: "followUp", label: "Follow up berikutnya", kind: "date", section: FOLLOW, half: true },
+  { key: "next", label: "Langkah berikutnya", kind: "text", section: FOLLOW, placeholder: "Tunggu balasan harga" },
+  { key: "name", label: "Nama", kind: "text", required: true, section: CLIENT },
+  { key: "service", label: "Layanan", kind: "text", placeholder: "Kasir (2 cabang)", section: CLIENT, half: true },
   {
     key: "source",
     label: "Sumber",
     kind: "select",
+    section: CLIENT,
+    half: true,
     options: [{ value: "", label: "Belum diketahui" }, ...LEAD_SOURCES.map((s) => ({ value: s, label: s }))],
   },
   {
     key: "contact",
     label: "Kontak",
     kind: "contact",
+    section: CLIENT,
     placeholder: "https://www.threads.com/messages/t/...",
     hint: "Link DM (diawali https://) atau alamat email.",
   },
-  { key: "stage", label: "Tahap", kind: "select", options: LEAD_STAGES.map((s) => ({ value: s, label: s })) },
-  { key: "value", label: "Nilai setup", kind: "money" },
-  {
-    key: "branches",
-    label: "Jumlah cabang",
-    kind: "count",
-    hint: "Untuk kasir. Biaya bulanan terisi otomatis Rp145.000 per cabang.",
-  },
-  { key: "monthly", label: "Biaya bulanan", kind: "money" },
-  { key: "followUp", label: "Follow up berikutnya", kind: "date" },
-  { key: "next", label: "Langkah berikutnya", kind: "text" },
-  { key: "note", label: "Catatan", kind: "textarea" },
+  { key: "note", label: "Catatan", kind: "textarea", section: CLIENT },
+  { key: "value", label: "Nilai setup", kind: "money", section: VALUE },
+  { key: "branches", label: "Jumlah cabang", kind: "count", section: VALUE, half: true, hint: "Untuk kasir." },
+  { key: "monthly", label: "Biaya bulanan", kind: "money", section: VALUE, half: true, hint: "Otomatis Rp145.000 per cabang." },
 ];
 
 /** Biaya bulanan ikut jumlah cabang, selama belum diubah manual. */
@@ -99,7 +102,7 @@ export default function LeadsPage() {
       derive,
       filters: [
         {
-          // Baru, Kirim harga, dan Nego digabung jadi "Terbuka"; tahapnya tetap
+          // Baru, Menunggu kabar, Kirim harga, dan Nego digabung jadi "Terbuka"; tahapnya tetap
           // terlihat di badge tiap baris.
           label: "Tahap",
           initial: "terbuka",

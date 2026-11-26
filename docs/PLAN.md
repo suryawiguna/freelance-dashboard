@@ -49,7 +49,7 @@ Semua uang disimpan sebagai **integer rupiah**. Tanggal disimpan sebagai string 
 | service | string | contoh: "Kasir (2 cabang)", "Website" |
 | source | enum | Threads, Instagram, WhatsApp, Email, Referral, Website, Lainnya |
 | contact | string url | link DM Threads atau kontak lain; harus https |
-| stage | enum | Baru, Kirim harga, Nego, Deal, On hold, Tutup |
+| stage | enum | Baru, Menunggu kabar, Kirim harga, Nego, Deal, On hold, Tutup |
 | value | int \| null | nilai setup / proyek |
 | monthly | int \| null | biaya bulanan (Rp145.000 × jumlah cabang untuk kasir) |
 | branches | int \| null | jumlah cabang, opsional; kalau diisi, `monthly` bisa dihitung otomatis |
@@ -57,7 +57,7 @@ Semua uang disimpan sebagai **integer rupiah**. Tanggal disimpan sebagai string 
 | next | string | langkah berikutnya |
 | note | string | catatan bebas |
 
-Lead **terbuka** = tahap Baru, Kirim harga, atau Nego.
+Lead **terbuka** = tahap Baru, Menunggu kabar, Kirim harga, atau Nego. "Menunggu kabar" dipakai setelah calon klien di-follow up dan belum membalas.
 
 Saat lead pindah ke tahap Deal, tawarkan tombol "Jadikan proyek" yang membuat dokumen `projects` dengan klien, link, dan biaya bulanan yang sama.
 
@@ -139,7 +139,7 @@ Tombol Ekspor CSV per koleksi.
 
 Prinsipnya simple dan clean, dengan banyak ruang kosong.
 
-- **Ukuran font minimum 16px di mana pun**, termasuk label, chip, caption, tabel, input, dan tombol. Skala yang dipakai: 16 (body/caption), 18 (subjudul), 24 (judul halaman), 32 (angka kartu). Jangan ada `text-xs` atau `text-sm`. Set di Tailwind theme supaya ukuran di bawah 16 tidak tersedia.
+- **Satu ukuran teks dasar untuk semuanya**, termasuk label, chip, caption, tabel, input, dan tombol: 16px di HP dan tablet, 14px di desktop (mulai 1024px, standar dashboard). Skala yang dipakai (HP / desktop): 16/14 (body/caption), 18/15,75 (subjudul), 24/21 (judul halaman), 32/28 (angka kartu). Jangan ada `text-xs` atau `text-sm`. Set di Tailwind theme supaya ukuran lain tidak tersedia; ukuran desktop lewat `font-size` di `html`.
 - Font: Inter atau Nunito, satu keluarga saja. Angka memakai `tabular-nums`.
 - Warna netral (putih, abu-abu, hitam) dengan satu warna aksen. Status: hijau = ok, kuning = dekat, merah = lewat. Jangan mengandalkan warna saja; tambahkan teks seperti "Lewat 2 hari".
 - Kartu putih, border 1px abu-abu terang, radius 12px, tanpa bayangan berat.
@@ -174,7 +174,7 @@ Aturan kode:
 
 Setiap fase diakhiri dengan `npm run lint`, `npm test`, dan `npm run test:rules` yang hijau. Laporkan hasilnya, lalu tunggu persetujuan sebelum commit/push.
 
-1. **Fondasi**: Vite + TS + Tailwind (skala font min 16px), Firebase init, login Google, rules owner-only beserta tesnya, emulator.
+1. **Fondasi**: Vite + TS + Tailwind (skala font terkunci, dasar 16px di HP), Firebase init, login Google, rules owner-only beserta tesnya, emulator.
 2. **Lead**: tipe, repo, list + form + drawer, filter, Buka DM, Follow up +3 hari.
 3. **Proyek, Tagihan, Aset**: halaman list + form, serta "Jadikan proyek" dari lead yang Deal.
 4. **Ringkasan**: `summary.ts` + tes, kartu, daftar tindak lanjut.
@@ -184,7 +184,7 @@ Setiap fase diakhiri dengan `npm run lint`, `npm test`, dan `npm run test:rules`
 ## 10. Kriteria selesai
 
 - Hanya akun Surya yang bisa login dan membaca data. Tes rules membuktikannya.
-- Semua teks di layar berukuran minimal 16px. Cek dengan DevTools di 375px dan 1440px.
+- Teks dasar 16px di 375px dan 14px di 1440px. Cek dengan DevTools.
 - Klik baris membuka panel edit tanpa halaman berpindah atau blank.
 - Angka ringkasan sesuai dengan data seed: 5 lead terbuka, potensi setup Rp5.600.000.
 
