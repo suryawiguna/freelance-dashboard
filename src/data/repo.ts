@@ -17,6 +17,7 @@ import {
   type FirestoreError,
 } from "firebase/firestore";
 import { normalize, type CollectionName, type Draft, type Records } from "../domain/records";
+import { GUIDE_ID, type Guide } from "../domain/types";
 import { db } from "./firebase";
 
 export function watch<C extends CollectionName>(
@@ -76,4 +77,26 @@ export function batch(list: readonly BatchOp[]): Promise<void> {
     else b.delete(ref);
   }
   return b.commit();
+}
+
+// ---- Panduan (satu dokumen guides/sop) ----
+
+/** null = belum ada dokumen. */
+export function watchGuide(onData: (g: Guide | null) => void, onError: (e: FirestoreError) => void): () => void {
+  return onSnapshot(
+    doc(db, "guides", GUIDE_ID),
+    (snap) => {
+      const body = snap.get("body");
+      onData(snap.exists() ? { body: typeof body === "string" ? body : "" } : null);
+    },
+    onError,
+  );
+}
+
+/** Buat dokumen bila belum ada, selain itu ubah body saja (createdAt tetap). */
+export function saveGuide(body: string, exists: boolean): Promise<void> {
+  const ref = doc(db, "guides", GUIDE_ID);
+  return exists
+    ? updateDoc(ref, { body, updatedAt: serverTimestamp() })
+    : setDoc(ref, { body, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
 }

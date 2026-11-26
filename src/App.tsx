@@ -12,6 +12,7 @@ const ClientsPage = lazy(() => import("./features/clients/ClientsPage"));
 const ClientDetailPage = lazy(() => import("./features/clients/ClientDetailPage"));
 const MoneyPage = lazy(() => import("./features/money/MoneyPage"));
 const ServicesPage = lazy(() => import("./features/services/ServicesPage"));
+const GuidePage = lazy(() => import("./features/guide/GuidePage"));
 
 function Content({ page }: { page: Page }) {
   switch (page.name) {
@@ -24,6 +25,8 @@ function Content({ page }: { page: Page }) {
       return <MoneyPage tab={page.name} />;
     case "services":
       return <ServicesPage />;
+    case "guide":
+      return <GuidePage />;
     default:
       return <TodayPage />;
   }

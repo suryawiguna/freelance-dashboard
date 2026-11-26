@@ -15,6 +15,7 @@ export const NAV = [
   { path: "/klien", label: "Klien" },
   { path: "/uang", label: "Uang" },
   { path: "/jasa", label: "Jasa" },
+  { path: "/panduan", label: "Panduan" },
 ] as const;
 
 export type NavPath = (typeof NAV)[number]["path"];
@@ -25,7 +26,8 @@ export type Page =
   | { name: "client"; id: string }
   | { name: "bills" }
   | { name: "assets" }
-  | { name: "services" };
+  | { name: "services" }
+  | { name: "guide" };
 
 export const NEW_ID = "baru";
 
@@ -44,6 +46,8 @@ export function matchPath(pathname: string): Page {
       return { name: "assets" };
     case "/jasa":
       return { name: "services" };
+    case "/panduan":
+      return { name: "guide" };
     default:
       return { name: "today" };
   }
@@ -59,6 +63,8 @@ export function navOf(page: Page): NavPath {
       return "/uang";
     case "services":
       return "/jasa";
+    case "guide":
+      return "/panduan";
     default:
       return "/";
   }

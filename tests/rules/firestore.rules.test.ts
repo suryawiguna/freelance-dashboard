@@ -23,6 +23,7 @@ import {
 } from "firebase/firestore";
 import {
   ASSET_KINDS,
+  GUIDE_MAX,
   NEXT_REQUIRED_STAGES,
   PAYMENT_STATUSES,
   PAYMENT_TYPES,
@@ -134,6 +135,8 @@ const ASSET = {
   note: "",
 };
 
+const GUIDE = { body: "# SOP\n\n**Follow-up H+3:**\n> Halo kak" };
+
 /** Induk yang dirujuk contoh di atas: clients/c1, services/s1, projects/p1. */
 async function seedParents() {
   await seed("services/s1", { ...SERVICE, createdAt: OLD, updatedAt: OLD });
@@ -152,6 +155,7 @@ const COLLECTIONS = [
   { name: "projects", sample: PROJECT },
   { name: "payments", sample: PAYMENT },
   { name: "assets", sample: ASSET },
+  { name: "guides", sample: GUIDE },
 ] as const;
 
 // ---- Akses ----
@@ -428,6 +432,20 @@ describe("assets", () => {
 });
 
 // ---- Data awal (scripts/seed-data.json, hasil migrasi Lampiran A) ----
+
+describe("guides", () => {
+  accepts("guides", GUIDE, [
+    ["body kosong", { body: "" }],
+    ["body tepat di batas", { body: "a".repeat(GUIDE_MAX) }],
+  ]);
+  rejects("guides", GUIDE, [
+    ["field asing", { title: "SOP" }],
+    ["body tidak ada", { body: undefined }],
+    ["body bukan string", { body: 5 }],
+    ["body null", { body: null }],
+    ["body terlalu panjang", { body: "a".repeat(GUIDE_MAX + 1) }],
+  ]);
+});
 
 describe("data awal (scripts/seed-data.json) lolos validasi", () => {
   const data = JSON.parse(readFileSync(resolve(__dirname, "../../scripts/seed-data.json"), "utf8")) as Record<

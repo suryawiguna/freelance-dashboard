@@ -144,7 +144,7 @@ Di form, label harga mengikuti tahap. Sebelum Deal labelnya "Harga penawaran", s
 
 ## 4. Halaman
 
-Navigasi berisi empat halaman: **Hari ini, Klien, Uang, Jasa**. Sidebar di desktop, bottom tab di HP.
+Navigasi berisi lima halaman: **Hari ini, Klien, Uang, Jasa, Panduan** (§4.6). Sidebar di desktop, bottom tab di HP.
 
 ### 4.1 Hari ini (`/`)
 
@@ -203,6 +203,16 @@ Ekspor CSV tetap ada per tab.
 ### 4.5 Jasa (`/jasa`)
 
 Daftar jasa dan harga patokannya, diedit lewat drawer. Jasa yang tidak aktif disembunyikan dari pilihan di form proyek, tapi tetap tampil di proyek lama. Halaman ini juga berguna sebagai contekan saat membalas DM.
+
+### 4.6 Panduan (`/panduan`) **(dibangun)**
+
+SOP kerja dalam Markdown: alur lead, paket harga, aturan diskon, template pesan, checklist mingguan. Satu dokumen `guides/sop` dengan field `body` (string, maksimal 100.000 karakter) plus `createdAt`/`updatedAt`, divalidasi di rules dan dites. Disimpan di Firestore, bukan di kode, karena repo publik.
+
+- Mode baca: daftar isi dari judul `##`, tabel, checklist, dan tombol Salin di setiap kutipan.
+- Mode edit: satu textarea Markdown, konfirmasi bila membuang perubahan.
+- **Template pesan**: setiap baris tebal yang diikuti kutipan (`**Follow-up H+3:**` lalu `> Halo kak...`) menjadi template. Tombol "Template pesan" di detail klien dan panel proyek menampilkannya dengan tombol Salin; `[link]` diisi link proyek. Mengubah template cukup di Panduan.
+
+Paket harga SOP (Landing Page, Website + Edit Sendiri, Website + Booking, Maintenance website, Kasir beserta tambahannya) diisi sebagai data Jasa, jadi harga proyek tetap terisi dari jasa.
 
 ## 5. Alur utama
 

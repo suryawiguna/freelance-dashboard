@@ -196,5 +196,20 @@ service cloud.firestore {
       allow create: if isOwner() && validAsset(request.resource.data) && stampsOnCreate(request.resource.data);
       allow update: if isOwner() && validAsset(request.resource.data) && stampsOnUpdate(request.resource.data);
     }
+
+    // ---- guides: panduan kerja (SOP) dalam Markdown ----
+
+    // Batas body sama dengan GUIDE_MAX di src/domain/types.ts.
+    function validGuide(d) {
+      return d.keys().hasAll(['body', 'createdAt', 'updatedAt'])
+        && d.keys().hasOnly(['body', 'createdAt', 'updatedAt'])
+        && str(d.body, 100000);
+    }
+
+    match /guides/{id} {
+      allow read, delete: if isOwner();
+      allow create: if isOwner() && validGuide(request.resource.data) && stampsOnCreate(request.resource.data);
+      allow update: if isOwner() && validGuide(request.resource.data) && stampsOnUpdate(request.resource.data);
+    }
   }
 }

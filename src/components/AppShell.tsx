@@ -1,4 +1,4 @@
-import { CalendarCheck, LogOut, Tags, Users, Wallet } from "lucide-react";
+import { BookOpen, CalendarCheck, LogOut, Tags, Users, Wallet } from "lucide-react";
 import type { ReactNode } from "react";
 import { useData } from "../data/DataContext";
 import { useConfirm } from "./ConfirmDialog";
@@ -11,6 +11,7 @@ const ICONS: Record<NavPath, typeof Users> = {
   "/klien": Users,
   "/uang": Wallet,
   "/jasa": Tags,
+  "/panduan": BookOpen,
 };
 
 /** Sidebar di desktop, bottom tab bar di HP (di bawah 640px). */

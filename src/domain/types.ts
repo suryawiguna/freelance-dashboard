@@ -166,3 +166,15 @@ export interface Asset {
   renewal: DateStr;
   note: string;
 }
+
+/**
+ * Panduan kerja (SOP) dalam Markdown, satu dokumen `guides/sop`. Disimpan di
+ * Firestore, bukan di kode, karena repo publik. Template pesan dibaca dari
+ * dokumen ini (src/domain/templates.ts).
+ */
+export interface Guide {
+  body: string;
+}
+export const GUIDE_ID = "sop";
+/** Batas panjang body (sama dengan firestore.rules). */
+export const GUIDE_MAX = 100000;

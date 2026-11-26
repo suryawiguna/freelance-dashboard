@@ -11,6 +11,7 @@ import { useAllLoaded, useData } from "../../data/DataContext";
 import { useLookup } from "../../data/useLookup";
 import { phaseOf } from "../../domain/projectFlow";
 import { STAGES, type Asset, type Payment, type Project } from "../../domain/types";
+import { TemplateMenu } from "../shared/TemplateMenu";
 import { contactLabel, waLink } from "../../lib/contact";
 import { formatDate, todayWita } from "../../lib/dates";
 import { formatRupiah } from "../../lib/money";
@@ -72,6 +73,7 @@ export default function ClientDetailPage({ id }: { id: string }) {
               Chat WA
             </a>
           )}
+          <TemplateMenu link={projects.find((p) => p.link)?.link} />
           <Button onClick={() => openEdit("clients", id)}>
             <Pencil size={18} aria-hidden />
             Edit klien

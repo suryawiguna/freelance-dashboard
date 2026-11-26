@@ -23,6 +23,7 @@ import { formatRupiah, parseRupiah } from "../../lib/money";
 import { clientPath, closeEditAndGo, replaceWith, usePage } from "../../lib/route";
 import { moneyInput, splitMulti, type FieldDef, type FormValues } from "../shared/formModel";
 import { LinkButton } from "../shared/helpers";
+import { TemplateMenu } from "../shared/TemplateMenu";
 import type { FormConfig } from "./EditPanel";
 import { useActions } from "./useActions";
 
@@ -201,7 +202,6 @@ export function useFormConfigs(): FormConfigs {
       extras: ({ record }) => {
         if (!record) return null;
         const onClientPage = page.name === "client" && page.id === record.clientId;
-        if (onClientPage && !record.link) return null;
         return (
           <div className="flex flex-wrap gap-2">
             {!onClientPage && (
@@ -211,6 +211,7 @@ export function useFormConfigs(): FormConfigs {
               </Button>
             )}
             {record.link && <LinkButton href={record.link}>Buka link</LinkButton>}
+            <TemplateMenu link={record.link} />
           </div>
         );
       },
