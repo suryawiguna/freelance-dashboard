@@ -1,10 +1,11 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { COLLECTIONS, type CollectionName, type Records } from "../domain/records";
 import { watch } from "./repo";
+import { LookupProvider } from "./useLookup";
 
 /**
  * Satu listener per koleksi untuk seluruh aplikasi. Datanya kecil (satu
- * pengguna), dan Ringkasan butuh keempatnya, jadi lebih murah daripada
+ * pengguna), dan Hari ini serta detail klien butuh semuanya, jadi lebih murah daripada
  * listener per halaman. Berpindah halaman tidak memuat ulang apa pun.
  */
 type Data = { [C in CollectionName]: Records[C][] };
@@ -17,11 +18,12 @@ interface DataState extends Data {
 const DataContext = createContext<DataState | null>(null);
 
 const INITIAL: DataState = {
-  leads: [],
+  services: [],
+  clients: [],
   projects: [],
   payments: [],
   assets: [],
-  loaded: { leads: false, projects: false, payments: false, assets: false },
+  loaded: { services: false, clients: false, projects: false, payments: false, assets: false },
   error: null,
 };
 
@@ -46,11 +48,21 @@ export function DataProvider({ children }: { children: ReactNode }) {
     return () => unsubs.forEach((u) => u());
   }, []);
 
-  return <DataContext.Provider value={state}>{children}</DataContext.Provider>;
+  return (
+    <DataContext.Provider value={state}>
+      <LookupProvider>{children}</LookupProvider>
+    </DataContext.Provider>
+  );
 }
 
 export function useData(): DataState {
   const ctx = useContext(DataContext);
   if (!ctx) throw new Error("useData di luar DataProvider");
   return ctx;
+}
+
+/** Semua koleksi sudah dimuat sekali. */
+export function useAllLoaded(): boolean {
+  const { loaded } = useData();
+  return Object.values(loaded).every(Boolean);
 }

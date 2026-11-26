@@ -1,31 +1,34 @@
 /**
- * Semua angka di halaman Ringkasan (PLAN §6.1). Modul murni: tidak ada
- * Firebase, tidak ada Date.now(); `today` selalu dari luar supaya bisa dites.
+ * Semua angka dan daftar di halaman Hari ini (docs/PLAN-KLIEN.md §4.1).
+ * Modul murni: tidak ada Firebase, tidak ada Date.now(); `today` selalu dari
+ * luar supaya bisa dites.
  */
-import type { CollectionName } from "../domain/records";
-import { OPEN_LEAD_STAGES, type Asset, type DateStr, type Lead, type Payment, type Project } from "../domain/types";
+import { pendingMonthlyBills, type PendingBill } from "../domain/billing";
+import { phaseOf } from "../domain/projectFlow";
+import type { Asset, Client, DateStr, Payment, Project } from "../domain/types";
 import { daysBetween, isDateStr, monthOf, relativeLabel } from "./dates";
 
 export interface SummaryInput {
-  leads: Lead[];
+  clients: Client[];
   projects: Project[];
   payments: Payment[];
   assets: Asset[];
 }
 
-/** Jendela "perlu ditindaklanjuti", dalam hari ke depan. Yang sudah lewat selalu masuk. */
-export const WINDOW = { leadFollowUp: 3, projectDue: 7, paymentDue: 7, assetRenewal: 30 } as const;
+/** Jendela tiap kelompok, dalam hari ke depan. Yang sudah lewat selalu masuk. */
+export const WINDOW = { contact: 3, work: 7, payment: 7, renewal: 30 } as const;
 
-/** Proyek yang deadline-nya masih relevan: belum Live dan belum Selesai. */
-const PROJECT_IN_PROGRESS = new Set(["Belum mulai", "Dikerjakan", "Revisi"]);
-/** Proyek yang menghasilkan pendapatan bulanan. */
-const PROJECT_EARNING = new Set(["Live", "Maintenance"]);
+export type Group = keyof typeof WINDOW;
+export const GROUPS: readonly Group[] = ["contact", "work", "payment", "renewal"];
 
 export type Tone = "late" | "near";
 
-export interface FollowItem {
-  collection: CollectionName;
+export interface TodayItem {
+  group: Group;
+  collection: "projects" | "payments" | "assets";
   id: string;
+  /** null untuk aset milik sendiri. */
+  clientId: string | null;
   title: string;
   detail: string;
   date: DateStr;
@@ -35,82 +38,84 @@ export interface FollowItem {
 }
 
 export interface Summary {
-  openLeads: { count: number; setupTotal: number };
-  monthlyRevenue: number;
+  groups: Record<Group, TodayItem[]>;
+  /** Total biaya bulanan proyek Live. */
+  monthlyRevenue: { count: number; total: number };
   unpaid: { count: number; total: number };
   paidThisMonth: { count: number; total: number };
-  renewalsSoon: number;
-  followUps: FollowItem[];
+  /** Proyek fase Prospek dan total harga penawarannya. */
+  prospects: { count: number; total: number };
+  /** Tagihan langganan bulan berjalan yang belum dibuat. */
+  pendingBills: { month: string; bills: PendingBill[] };
 }
-
-export const isOpenLead = (l: Lead) => OPEN_LEAD_STAGES.includes(l.stage);
 
 const sum = (xs: Array<number | null>) => xs.reduce<number>((a, b) => a + (b ?? 0), 0);
 
-/** Hari dari hari ini, atau null bila tanggal kosong / tidak valid. */
-function daysFrom(today: DateStr, date: DateStr): number | null {
-  return isDateStr(date) ? daysBetween(today, date) : null;
-}
-
 export function summarize(input: SummaryInput, today: DateStr): Summary {
-  const { leads, projects, payments, assets } = input;
-  const followUps: FollowItem[] = [];
+  const { clients, projects, payments, assets } = input;
+  const clientName = new Map(clients.map((c) => [c.id, c.name]));
+  const nameOf = (id: string | null) => (id === null ? "Milik sendiri" : (clientName.get(id) ?? "Klien terhapus"));
+  const projectName = new Map(projects.map((p) => [p.id, p.name]));
+  const groups: Record<Group, TodayItem[]> = { contact: [], work: [], payment: [], renewal: [] };
 
-  const push = (
-    collection: CollectionName,
-    id: string,
-    title: string,
-    detail: string,
-    date: DateStr,
-    window: number,
-  ) => {
-    const days = daysFrom(today, date);
-    if (days === null || days > window) return;
-    followUps.push({
-      collection,
-      id,
-      title,
-      detail,
-      date,
-      days,
-      tone: days < 0 ? "late" : "near",
-      label: relativeLabel(days),
-    });
+  const push = (item: Omit<TodayItem, "days" | "tone" | "label">) => {
+    if (!isDateStr(item.date)) return;
+    const days = daysBetween(today, item.date);
+    if (days > WINDOW[item.group]) return;
+    groups[item.group].push({ ...item, days, tone: days < 0 ? "late" : "near", label: relativeLabel(days) });
   };
 
-  const open = leads.filter(isOpenLead);
-  for (const l of open) push("leads", l.id, l.name, l.next || "Follow up", l.followUp, WINDOW.leadFollowUp);
-
   for (const p of projects) {
-    if (PROJECT_IN_PROGRESS.has(p.status)) {
-      push("projects", p.id, p.name || p.client, `Deadline, ${p.client}`, p.due, WINDOW.projectDue);
+    const phase = phaseOf(p.stage);
+    const base = { collection: "projects" as const, id: p.id, clientId: p.clientId, title: nameOf(p.clientId) };
+    const what = p.name || "Proyek";
+    if (phase === "Prospek" || p.stage === "On hold") {
+      const detail = p.name ? `${p.name}: ${p.next || "follow up"}` : p.next || "Follow up";
+      push({ ...base, group: "contact", detail, date: p.nextDate });
+    } else if (phase === "Dikerjakan" || p.stage === "Live") {
+      // Satu baris per proyek: tanggal yang paling dekat antara langkah berikutnya dan deadline.
+      const dueFirst = phase === "Dikerjakan" && isDateStr(p.due) && (!isDateStr(p.nextDate) || p.due < p.nextDate);
+      push({
+        ...base,
+        group: "work",
+        detail: dueFirst ? `${what}: deadline` : `${what}: ${p.next || "langkah berikutnya"}`,
+        date: dueFirst ? p.due : p.nextDate,
+      });
     }
   }
 
   const unpaid = payments.filter((p) => p.status !== "Lunas");
   for (const p of unpaid) {
-    push("payments", p.id, p.client, `Tagihan ${p.type}${p.item ? `, ${p.item}` : ""}`, p.due, WINDOW.paymentDue);
+    const of = p.projectId ? projectName.get(p.projectId) : "";
+    const detail = [`Tagihan ${p.type}`, p.item || of].filter(Boolean).join(", ");
+    push({ group: "payment", collection: "payments", id: p.id, clientId: p.clientId, title: nameOf(p.clientId), detail, date: p.due });
   }
 
-  let renewalsSoon = 0;
   for (const a of assets) {
-    const days = daysFrom(today, a.renewal);
-    if (days !== null && days <= WINDOW.assetRenewal) renewalsSoon++;
-    push("assets", a.id, a.item || a.client, `Perpanjangan ${a.kind}, ${a.client}`, a.renewal, WINDOW.assetRenewal);
+    push({
+      group: "renewal",
+      collection: "assets",
+      id: a.id,
+      clientId: a.clientId,
+      title: a.item,
+      detail: `Perpanjangan ${a.kind}, ${nameOf(a.clientId)}`,
+      date: a.renewal,
+    });
   }
 
-  const thisMonth = monthOf(today);
-  const paid = payments.filter((p) => p.status === "Lunas" && isDateStr(p.paidAt) && monthOf(p.paidAt) === thisMonth);
+  for (const g of GROUPS) groups[g].sort((a, b) => a.date.localeCompare(b.date) || a.title.localeCompare(b.title, "id"));
 
-  const order: Record<CollectionName, number> = { leads: 0, projects: 1, payments: 2, assets: 3 };
-  followUps.sort((a, b) => a.date.localeCompare(b.date) || order[a.collection] - order[b.collection] || a.title.localeCompare(b.title));
+  const month = monthOf(today);
+  const live = projects.filter((p) => p.stage === "Live" && (p.monthly ?? 0) > 0);
+  const prospects = projects.filter((p) => phaseOf(p.stage) === "Prospek");
+  const paid = payments.filter((p) => p.status === "Lunas" && isDateStr(p.paidAt) && monthOf(p.paidAt) === month);
 
   return {
-    openLeads: { count: open.length, setupTotal: sum(open.map((l) => l.value)) },
-    monthlyRevenue: sum(projects.filter((p) => PROJECT_EARNING.has(p.status)).map((p) => p.monthly)),
+    groups,
+    monthlyRevenue: { count: live.length, total: sum(live.map((p) => p.monthly)) },
     unpaid: { count: unpaid.length, total: sum(unpaid.map((p) => p.amount)) },
     paidThisMonth: { count: paid.length, total: sum(paid.map((p) => p.amount)) },
-    renewalsSoon,
-    followUps,
+    prospects: { count: prospects.length, total: sum(prospects.map((p) => p.price)) },
+    pendingBills: { month, bills: pendingMonthlyBills(projects, payments, month) },
   };
 }

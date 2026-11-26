@@ -1,5 +1,7 @@
 # Dashboard Freelance: rencana untuk Claude Code
 
+> **v2 (26 Nov 2026):** model data (§5), halaman (§6), dan Lampiran A sudah diganti oleh [PLAN-KLIEN.md](PLAN-KLIEN.md), struktur berpusat pada klien. Bagian lain di sini (auth, stack, desain, aturan kode) tetap berlaku.
+
 Dokumen ini adalah brief untuk membangun web dashboard freelance pribadi Surya. Taruh di root repo baru sebagai `docs/PLAN.md`. Buat juga `CLAUDE.md` singkat yang merujuk ke dokumen ini.
 
 ## 1. Tujuan

@@ -1,130 +1,272 @@
 {
-  "leads": [
+  "services": [
+    {
+      "id": "kasir",
+      "name": "Kasir",
+      "setup": 1400000,
+      "setupNote": "",
+      "monthly": 145000,
+      "unit": "cabang",
+      "dpPercent": 50,
+      "extras": [],
+      "includes": "",
+      "active": true
+    },
+    {
+      "id": "website",
+      "name": "Website",
+      "setup": 4500000,
+      "setupNote": "mulai dari, tergantung fitur",
+      "monthly": null,
+      "unit": "",
+      "dpPercent": 50,
+      "extras": [
+        {
+          "name": "Booking via WhatsApp",
+          "price": 300000
+        }
+      ],
+      "includes": "",
+      "active": true
+    },
+    {
+      "id": "upgrade-wordpress",
+      "name": "Upgrade WordPress",
+      "setup": null,
+      "setupNote": "harga belum ditentukan",
+      "monthly": null,
+      "unit": "",
+      "dpPercent": 50,
+      "extras": [],
+      "includes": "",
+      "active": true
+    }
+  ],
+  "clients": [
     {
       "id": "aneka-ayam",
       "name": "Aneka Ayam Manado",
-      "service": "Kasir (2 cabang)",
-      "source": "Threads",
       "contact": "https://www.threads.com/messages/t/1129039183264155",
-      "stage": "Nego",
-      "value": 1400000,
-      "monthly": 290000,
-      "followUp": "",
-      "next": "Siapkan pilot kasir-base",
-      "note": "Ayam segar, cabang Tikala dan Perkamil"
+      "phone": "",
+      "source": "Threads",
+      "sourceNote": "",
+      "note": "Ayam segar, cabang Tikala dan Perkamil",
+      "log": []
     },
     {
       "id": "cumeyume",
       "name": "Cumeyume",
-      "service": "Kasir",
-      "source": "Threads",
       "contact": "https://www.threads.com/messages/t/1475145657906984",
-      "stage": "Kirim harga",
-      "value": 1400000,
-      "monthly": 145000,
-      "followUp": "",
-      "next": "Follow up penawaran",
-      "note": "Juga jualan dimsum"
+      "phone": "",
+      "source": "Threads",
+      "sourceNote": "",
+      "note": "Juga jualan dimsum",
+      "log": []
     },
     {
       "id": "mini-cafe",
       "name": "Mini cafe (nama belum diketahui)",
-      "service": "Kasir (2 cabang)",
-      "source": "Threads",
       "contact": "https://www.threads.com/messages/t/1455741522754265",
-      "stage": "Kirim harga",
-      "value": 1400000,
-      "monthly": 290000,
-      "followUp": "2026-11-27",
-      "next": "Follow up, chat terakhir (harga) masih Seen",
-      "note": "Belum sebut nama usaha"
+      "phone": "",
+      "source": "Threads",
+      "sourceNote": "",
+      "note": "Belum sebut nama usaha",
+      "log": []
     },
     {
       "id": "dimsum-online",
       "name": "Dimsum online (nama belum diketahui)",
-      "service": "Kasir",
-      "source": "",
       "contact": "",
-      "stage": "Kirim harga",
-      "value": 1400000,
-      "monthly": 145000,
-      "followUp": "2026-11-27",
-      "next": "Follow up, chat terakhir (harga) masih Seen",
-      "note": "Jualan dimsum online, belum sebut nama usaha"
+      "phone": "",
+      "source": "",
+      "sourceNote": "",
+      "note": "Jualan dimsum online, belum sebut nama usaha",
+      "log": []
     },
     {
       "id": "beautybar",
       "name": "beautybar.cabntb (nail art)",
-      "service": "",
-      "source": "Threads",
       "contact": "https://www.threads.com/messages/t/1136354828995391",
-      "stage": "Baru",
-      "value": null,
-      "monthly": null,
-      "followUp": "",
-      "next": "",
-      "note": ""
+      "phone": "",
+      "source": "Threads",
+      "sourceNote": "",
+      "note": "",
+      "log": []
     },
     {
       "id": "aura-bali-tours",
       "name": "Aura Bali Tours",
-      "service": "Website + booking WA",
-      "source": "",
       "contact": "",
-      "stage": "On hold",
-      "value": 4800000,
-      "monthly": null,
-      "followUp": "",
-      "next": "Tunggu klien siap DP setelah low season",
-      "note": "Domain aurabalitours.com belum dibeli, cek lagi sebelum mulai"
+      "phone": "",
+      "source": "",
+      "sourceNote": "",
+      "note": "Domain aurabalitours.com belum dibeli, cek lagi sebelum mulai",
+      "log": []
     },
     {
       "id": "freedom-villa",
       "name": "Freedom Villa Bali (Robert)",
-      "service": "Upgrade WordPress",
-      "source": "",
       "contact": "",
-      "stage": "Tutup",
-      "value": null,
-      "monthly": null,
-      "followUp": "",
-      "next": "",
-      "note": "Tidak ada balasan"
+      "phone": "",
+      "source": "",
+      "sourceNote": "",
+      "note": "Tidak ada balasan",
+      "log": []
     }
   ],
   "projects": [
     {
       "id": "kasir-base",
-      "client": "Aneka Ayam Manado",
+      "clientId": "aneka-ayam",
+      "serviceId": "kasir",
       "name": "kasir-base (pilot)",
-      "status": "Dikerjakan",
-      "monthly": null,
+      "stage": "Dikerjakan",
+      "price": 1400000,
+      "extras": [],
+      "qty": 2,
+      "monthly": 290000,
+      "next": "Selesaikan Fase 4 (Ubah item), lalu deploy dan pilot",
+      "nextDate": "2026-11-25",
       "due": "",
       "link": "https://kasir-demo.web.app",
-      "next": "Selesaikan Fase 4 (Ubah item), lalu deploy dan pilot"
+      "dealAt": "",
+      "liveAt": "",
+      "note": ""
+    },
+    {
+      "id": "cumeyume",
+      "clientId": "cumeyume",
+      "serviceId": "kasir",
+      "name": "Kasir",
+      "stage": "Kirim harga",
+      "price": 1400000,
+      "extras": [],
+      "qty": null,
+      "monthly": 145000,
+      "next": "Follow up penawaran",
+      "nextDate": "2026-11-25",
+      "due": "",
+      "link": "",
+      "dealAt": "",
+      "liveAt": "",
+      "note": ""
+    },
+    {
+      "id": "mini-cafe",
+      "clientId": "mini-cafe",
+      "serviceId": "kasir",
+      "name": "Kasir (2 cabang)",
+      "stage": "Kirim harga",
+      "price": 1400000,
+      "extras": [],
+      "qty": 2,
+      "monthly": 290000,
+      "next": "Follow up, chat terakhir (harga) masih Seen",
+      "nextDate": "2026-11-27",
+      "due": "",
+      "link": "",
+      "dealAt": "",
+      "liveAt": "",
+      "note": ""
+    },
+    {
+      "id": "dimsum-online",
+      "clientId": "dimsum-online",
+      "serviceId": "kasir",
+      "name": "Kasir",
+      "stage": "Kirim harga",
+      "price": 1400000,
+      "extras": [],
+      "qty": null,
+      "monthly": 145000,
+      "next": "Follow up, chat terakhir (harga) masih Seen",
+      "nextDate": "2026-11-27",
+      "due": "",
+      "link": "",
+      "dealAt": "",
+      "liveAt": "",
+      "note": ""
+    },
+    {
+      "id": "beautybar",
+      "clientId": "beautybar",
+      "serviceId": null,
+      "name": "",
+      "stage": "Baru",
+      "price": null,
+      "extras": [],
+      "qty": null,
+      "monthly": null,
+      "next": "",
+      "nextDate": "2026-11-25",
+      "due": "",
+      "link": "",
+      "dealAt": "",
+      "liveAt": "",
+      "note": ""
+    },
+    {
+      "id": "aura-bali-tours",
+      "clientId": "aura-bali-tours",
+      "serviceId": "website",
+      "name": "Website + booking WA",
+      "stage": "On hold",
+      "price": 4800000,
+      "extras": [
+        "Booking via WhatsApp"
+      ],
+      "qty": null,
+      "monthly": null,
+      "next": "Tunggu klien siap DP setelah low season",
+      "nextDate": "2026-11-25",
+      "due": "",
+      "link": "",
+      "dealAt": "",
+      "liveAt": "",
+      "note": ""
+    },
+    {
+      "id": "freedom-villa",
+      "clientId": "freedom-villa",
+      "serviceId": "upgrade-wordpress",
+      "name": "Upgrade WordPress",
+      "stage": "Batal",
+      "price": null,
+      "extras": [],
+      "qty": null,
+      "monthly": null,
+      "next": "",
+      "nextDate": "",
+      "due": "",
+      "link": "",
+      "dealAt": "",
+      "liveAt": "",
+      "note": ""
     }
   ],
   "payments": [],
   "assets": [
     {
       "id": "kasir-demo",
-      "client": "Semua calon klien",
+      "clientId": null,
+      "projectId": null,
       "item": "kasir-demo.web.app",
       "kind": "Firebase",
       "provider": "Firebase (Spark)",
       "cost": 0,
       "renewal": "",
-      "note": "Satu demo untuk semua calon klien, belum dibagikan ke siapa pun"
+      "note": "Untuk: Semua calon klien. Satu demo untuk semua calon klien, belum dibagikan ke siapa pun"
     },
     {
       "id": "kasir-media",
-      "client": "Semua klien kasir",
+      "clientId": null,
+      "projectId": null,
       "item": "Worker kasir-media + R2",
       "kind": "Cloudflare",
       "provider": "Cloudflare",
       "cost": null,
       "renewal": "",
-      "note": "Satu bucket R2 per klien"
+      "note": "Untuk: Semua klien kasir. Satu bucket R2 per klien"
     }
   ]
 }

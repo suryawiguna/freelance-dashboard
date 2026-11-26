@@ -10,18 +10,20 @@ const VARIANTS: Record<Variant, string> = {
   danger: "bg-late text-surface hover:opacity-90",
 };
 
-/** Tap target minimal 44px (PLAN §7). */
+/** Tap target minimal 44px (PLAN §7). `icon` = tombol persegi 44px berisi ikon saja (wajib aria-label). */
 export function Button({
   variant = "neutral",
+  icon = false,
   className,
   type = "button",
   ...props
-}: ComponentProps<"button"> & { variant?: Variant }) {
+}: ComponentProps<"button"> & { variant?: Variant; icon?: boolean }) {
   return (
     <button
       type={type}
       className={cn(
-        "inline-flex min-h-11 items-center justify-center gap-2 whitespace-nowrap rounded-card px-4 font-semibold transition-colors",
+        "inline-flex min-h-11 items-center justify-center gap-2 whitespace-nowrap rounded-card font-semibold transition-colors",
+        icon ? "w-11 shrink-0" : "px-4",
         "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
         "disabled:cursor-not-allowed disabled:opacity-50",
         VARIANTS[variant],

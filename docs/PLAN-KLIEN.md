@@ -1,6 +1,6 @@
 # Rencana v2: struktur berpusat pada klien
 
-Status: **rencana, belum dikerjakan** (ditulis 26 Nov 2026). Setelah selesai dibangun, dokumen ini menggantikan bagian model data, halaman, dan ringkasan di [PLAN.md](PLAN.md). Hal lain di PLAN.md tetap berlaku: auth, keamanan, desain, stack, dan aturan kode.
+Status: **sudah dibangun** (26 Nov 2026), belum di-deploy dan data asli belum dimigrasi (lihat §7). Dokumen ini menggantikan bagian model data, halaman, dan ringkasan di [PLAN.md](PLAN.md). Hal lain di PLAN.md tetap berlaku: auth, keamanan, desain, stack, dan aturan kode. Keputusan yang berbeda dari rencana awal ditandai **(dibangun)**.
 
 ## 1. Tujuan
 
@@ -22,7 +22,7 @@ Ada dua syarat:
 
 1. **Klien jadi pusat.** Struktur Klien → Proyek → Tagihan dan Aset. Calon klien dan klien aktif adalah record yang sama, hanya beda tahap. Tidak ada lagi "lead" yang disalin menjadi "proyek".
 2. **Satu proyek, satu perjalanan.** Satu record proyek berjalan dari DM pertama sampai live dan berlangganan. Tahap penjualan dan tahap pengerjaan ada di satu daftar tahap yang sama. Model ini sama dengan Person + Deal di CRM penjualan.
-3. **Setiap proyek yang belum tutup wajib punya langkah berikutnya dan tanggalnya.** Termasuk yang On hold, supaya proyek itu muncul lagi pada waktunya. Proyek tanpa tanggal berarti proyek yang terlupakan.
+3. **Setiap proyek yang masih dikejar atau dikerjakan wajib punya tanggal langkah berikutnya.** Termasuk yang On hold, supaya proyek itu muncul lagi pada waktunya. Proyek tanpa tanggal berarti proyek yang terlupakan. **(dibangun)** Live, Selesai, dan Batal boleh tanpa tanggal; proyek Live yang punya tanggal muncul di kelompok Kerjakan.
 4. **Yang bisa dihitung, dihitung. Tidak disimpan.** Status klien, terakhir dihubungi, total dibayar, dan pendapatan bulanan semuanya dihitung dari data lain. Dengan begitu data selalu sinkron.
 5. **Harga dan nominal disimpan sebagai salinan.** Proyek menyimpan harga deal-nya sendiri, dan tagihan menyimpan nominalnya sendiri. Kalau harga patokan jasa naik, deal lama tidak ikut berubah.
 6. **Daftar jasa jadi patokan harga.** Harga di proyek terisi otomatis dari jasa, lalu boleh diubah untuk diskon atau tambahan.
@@ -99,7 +99,7 @@ Menggantikan koleksi `leads` dan `projects` versi lama.
 | qty | int \| null | jumlah unit, contoh jumlah cabang |
 | monthly | int \| null | biaya bulanan deal. Terisi otomatis dari `services.monthly × qty` |
 | next | string | langkah berikutnya |
-| nextDate | date | **wajib** selama proyek belum Selesai atau Batal |
+| nextDate | date | **wajib** untuk fase Prospek, Dikerjakan, dan On hold (`NEXT_REQUIRED_STAGES`) |
 | due | date \| "" | deadline pengerjaan |
 | link | string | link proyek atau demo (https). Link DM tetap di klien |
 | dealAt | date \| "" | diisi otomatis saat tahap menjadi Deal |
@@ -139,7 +139,8 @@ Di form, label harga mengikuti tahap. Sebelum Deal labelnya "Harga penawaran", s
 |---|---|---|
 | clientId | string \| null | `null` = milik sendiri, contoh kasir-demo, Worker kasir-media |
 | projectId | string \| null | opsional |
-| item, kind, provider, cost, renewal, note | | sama seperti v1 |
+| item | string | **wajib** (dibangun), karena klien boleh kosong |
+| kind, provider, cost, renewal, note | | sama seperti v1 |
 
 ## 4. Halaman
 
@@ -152,13 +153,13 @@ Empat kelompok. Yang terlambat diberi warna merah dan selalu di atas, yang dekat
 | Kelompok | Isi | Jendela |
 |---|---|---|
 | Hubungi | proyek fase Prospek atau On hold dengan `nextDate` | 3 hari |
-| Kerjakan | proyek fase Dikerjakan dengan `nextDate` atau `due` | 7 hari |
+| Kerjakan | proyek fase Dikerjakan dengan `nextDate` atau `due` (yang lebih dekat), dan proyek Live dengan `nextDate` | 7 hari |
 | Tagih | tagihan Belum dengan `due` | 7 hari |
 | Perpanjang | aset dengan `renewal` | 30 hari |
 
 Aksi cepat di setiap baris:
 
-- Hubungi: "Buka DM", lalu "Sudah dihubungi". Tombol kedua menambah log, menggeser `nextDate` +3 hari, dan menawarkan pindah ke tahap Menunggu kabar.
+- Hubungi: "Buka DM", lalu "Sudah dihubungi". Tombol kedua menambah log dan menggeser `nextDate` +3 hari. **(dibangun)** Tahap tidak diganti otomatis; ganti lewat chip tahap bila perlu.
 - Tagih: "Lunas hari ini".
 - Perpanjang: "Sudah diperpanjang", yang menggeser `renewal` +1 tahun.
 
@@ -188,7 +189,7 @@ Halaman sendiri, bukan drawer, supaya bisa dibuka langsung dan dibagikan ke diri
 - **Aset**: daftar aset klien ini beserta tanggal perpanjangannya.
 - **Riwayat**: log interaksi, dengan isian satu baris "Tambah catatan" (tanggal default hari ini).
 
-Router v1 (`src/lib/route.ts`) belum mendukung segmen dinamis, jadi perlu ditambah dukungan untuk `/klien/:id`. Panel edit tetap `?edit=`.
+**(dibangun)** Router mendukung `/klien/:id` dan `/uang/aset`. Panel edit menjadi `?c=<koleksi>&edit=<id>` (plus `clientId`/`projectId` untuk isian awal) dan dirender oleh `features/panels/PanelHost.tsx` di halaman mana pun.
 
 ### 4.4 Uang (`/uang`)
 
@@ -220,14 +221,22 @@ Daftar jasa dan harga patokannya, diedit lewat drawer. Jasa yang tidak aktif dis
 - `clientId` di `projects`, `payments`, dan `assets` divalidasi di rules dengan `exists()` ke `clients`. Begitu juga `projectId` dan `serviceId` bila terisi.
 - `nextDate` wajib selama `stage` bukan Selesai atau Batal. Ini divalidasi di rules dan di form.
 - **Hapus klien** menghapus semua proyek, tagihan, dan aset miliknya dalam satu batch. Dialog konfirmasi menyebutkan jumlah masing-masing.
-- **Hapus proyek** juga menawarkan untuk menghapus tagihannya. Kalau tidak, `projectId` di tagihan dikosongkan.
+- **Hapus proyek** **(dibangun)**: tagihan dan asetnya tetap disimpan di klien, `projectId`-nya dikosongkan. Riwayat uang tidak ikut hilang.
 - **Hapus jasa** hanya bisa bila tidak dipakai proyek mana pun. Kalau masih dipakai, jasa cukup dinonaktifkan.
 - `log` dan `extras` dibatasi ukurannya di rules (200 dan 20). Rules tidak bisa memeriksa isi setiap elemen, jadi validasi elemen dilakukan di `domain/validate.ts`.
 - Enum di rules tetap harus sama dengan `src/domain/types.ts`, dan tes tetap mengiterasi enum dari file itu.
 
 ## 7. Migrasi dari v1
 
-Script `scripts/migrate-v2.mjs` (firebase-admin) dengan mode `--dry-run` yang mencetak hasil pemetaan tanpa menulis apa pun. Urutannya: emulator dulu, lalu project asli setelah disetujui.
+Script `scripts/migrate-v2.mjs` (firebase-admin) dengan mode `--dry-run` yang mencetak hasil pemetaan tanpa menulis apa pun. Pemetaannya di `src/domain/migrateV1.ts` (dites, diimpor langsung lewat type stripping Node). Urutannya: emulator dulu, lalu project asli setelah disetujui.
+
+```bash
+npm run migrate:v2 -- --dry-run      # lihat hasil di project asli, tanpa menulis
+npm run migrate:v2                   # tulis ke project asli
+npm run migrate:v2 -- --hapus-lead   # setelah dicek di aplikasi: hapus koleksi leads
+```
+
+Script berhenti sendiri bila data sudah v2, jadi aman terjalan dua kali. `createdAt` asli dipertahankan.
 
 | v1 | v2 |
 |---|---|
@@ -250,7 +259,7 @@ Proyek terbuka yang `nextDate`-nya kosong diisi tanggal migrasi, supaya langsung
 
 Contoh hasil dari data seed:
 
-- **Aneka Ayam Manado**: lead Nego + proyek kasir-base Dikerjakan menjadi satu proyek "Kasir 2 cabang", tahap Dikerjakan, harga Rp1.400.000, Rp290.000/bln, qty 2, link kasir-demo.web.app.
+- **Aneka Ayam Manado**: lead Nego + proyek kasir-base Dikerjakan menjadi satu proyek "kasir-base (pilot)" (nama proyek v1 dipakai bila ada), jasa Kasir, tahap Dikerjakan, harga Rp1.400.000, Rp290.000/bln, qty 2, link kasir-demo.web.app.
 - **Freedom Villa Bali (Robert)**: tahap Batal.
 
 Koleksi `leads` dan dokumen v1 di `projects` dihapus setelah hasil migrasi dicek di aplikasi, dengan persetujuan terpisah. `scripts/seed-data.json` diganti dengan bentuk v2.
@@ -269,8 +278,11 @@ Setiap fase diakhiri dengan `npm run lint`, `npm test`, dan `npm run test:rules`
 
 ## 9. Pertanyaan terbuka
 
-- Kasir: biaya setup dibayar penuh di depan, atau DP 50%? Ini menentukan `dpPercent`.
-- Tagihan langganan jatuh tempo di tanggal yang sama dengan tanggal live, atau tanggal tetap setiap bulan (misalnya tanggal 1)?
-- Website: Rp4.500.000 sudah termasuk apa saja (jumlah halaman, domain, hosting tahun pertama)? Apakah ada biaya bulanan atau tahunan untuk maintenance?
-- Jasa lain apa saja yang perlu dicatat beserta harganya?
-- Apakah perlu pengingat "sapa klien lama" (klien yang semua proyeknya Selesai dan tidak dihubungi lebih dari 90 hari)? Saran: tunda dulu, tambah setelah v2 dipakai beberapa bulan.
+Sementara diisi nilai bawaan supaya bisa dipakai; semuanya bisa diubah di aplikasi tanpa kode.
+
+- Kasir: biaya setup dibayar penuh di depan, atau DP 50%? **Bawaan: DP 50% untuk semua jasa.** Ubah di halaman Jasa ("DP saat deal").
+- Tagihan langganan jatuh tempo di tanggal yang sama dengan tanggal live, atau tanggal tetap setiap bulan? **Dibangun: tanggal yang sama dengan `liveAt`**, dipotong ke akhir bulan; tanpa `liveAt` = tanggal 1. Tagihan pertama ada di bulan proyek live.
+- Website: Rp4.500.000 sudah termasuk apa saja (jumlah halaman, domain, hosting tahun pertama)? Apakah ada biaya bulanan atau tahunan untuk maintenance? Isi di Jasa > Website > "Isi paket".
+- Jasa lain apa saja yang perlu dicatat beserta harganya? Tambah di halaman Jasa.
+- Upgrade WordPress: harga patokan belum ada.
+- Pengingat "sapa klien lama" (semua proyek Selesai dan tidak dihubungi lebih dari 90 hari): ditunda, tambah setelah v2 dipakai beberapa bulan.

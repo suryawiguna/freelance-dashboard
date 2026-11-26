@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addDays, daysBetween, dueStatus, formatDate, isDateStr, monthOf, relativeLabel, todayWita } from "./dates";
+import { addDays, addYears, dateInMonth, daysBetween, dueStatus, formatDate, formatMonth, isDateStr, monthOf, relativeLabel, todayWita } from "./dates";
 
 describe("todayWita", () => {
   it("memakai UTC+8, bukan zona perangkat", () => {
@@ -64,5 +64,20 @@ describe("dueStatus", () => {
     expect(dueStatus("2026-11-28", "2026-11-25", 3)).toEqual({ tone: "near", label: "3 hari lagi" });
     expect(dueStatus("2026-11-29", "2026-11-25", 3)).toBeNull();
     expect(dueStatus("", "2026-11-25", 3)).toBeNull();
+  });
+});
+
+describe("bulan dan tahun", () => {
+  it("tanggal di bulan, dipotong ke akhir bulan", () => {
+    expect(dateInMonth("2026-12", 5)).toBe("2026-12-05");
+    expect(dateInMonth("2027-02", 31)).toBe("2027-02-28");
+    expect(dateInMonth("2028-02", 31)).toBe("2028-02-29");
+  });
+  it("tambah tahun, 29 Feb jadi 28 Feb", () => {
+    expect(addYears("2026-11-25", 1)).toBe("2027-11-25");
+    expect(addYears("2028-02-29", 1)).toBe("2029-02-28");
+  });
+  it("nama bulan pendek", () => {
+    expect(formatMonth("2026-12")).toBe("Des 2026");
   });
 });

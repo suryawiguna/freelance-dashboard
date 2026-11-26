@@ -15,6 +15,7 @@
     "emulators": "npx --yes firebase-tools@15 emulators:start --only firestore,auth --project demo-freelance",
     "seed": "node scripts/seed.mjs",
     "seed:emulator": "node scripts/seed.mjs --emulator",
+    "migrate:v2": "node scripts/migrate-v2.mjs",
     "deploy": "node scripts/deploy.mjs"
   },
   "dependencies": {

@@ -1,6 +1,6 @@
 rules_version = '2';
 
-// Dashboard freelance pribadi (docs/PLAN.md §4). Satu pengguna: pemilik.
+// Dashboard freelance pribadi (docs/PLAN.md §4, model data docs/PLAN-KLIEN.md §3). Satu pengguna: pemilik.
 // Deny-by-default: koleksi yang tidak disebut di bawah tertutup untuk semua.
 // Setiap aturan di sini punya tes di tests/rules/.
 service cloud.firestore {
@@ -38,12 +38,9 @@ service cloud.firestore {
     function urlOrEmpty(v) {
       return v == '' || (str(v, 1000) && v.matches('^https://[^ ]+$'));
     }
-    // Kontak lead: link https, alamat email sebagai mailto:, atau "".
+    // Kontak klien: link https, alamat email sebagai mailto:, atau "".
     function contactOrEmpty(v) {
       return urlOrEmpty(v) || (str(v, 320) && v.matches('^mailto:[^ @/]+@[^ @/]+[.][^ @/]+$'));
-    }
-    function idOrNull(v) {
-      return v == null || (v is string && v.size() > 0 && v.size() <= 200);
     }
 
     // createdAt dan updatedAt = serverTimestamp(). createdAt tidak berubah.
@@ -54,45 +51,99 @@ service cloud.firestore {
       return d.createdAt == resource.data.createdAt && d.updatedAt == request.time;
     }
 
-    // ---- leads ----
+    function phoneOrEmpty(v) {
+      return str(v, 30) && v.matches('^[0-9+ ()-]*$');
+    }
+    // "YYYY-MM" atau "".
+    function monthOrEmpty(v) {
+      return v == '' || (v is string && v.matches('^[0-9]{4}-(0[1-9]|1[0-2])$'));
+    }
+    function listMax(v, max) {
+      return v is list && v.size() <= max;
+    }
+    // Relasi: dokumen induk harus ada setelah tulis ini (existsAfter, supaya
+    // klien dan proyek pertamanya bisa dibuat dalam satu batch).
+    function ref(c, id) {
+      return id is string && id.size() > 0 && id.size() <= 200
+        && existsAfter(/databases/$(database)/documents/$(c)/$(id));
+    }
+    function refOrNull(c, id) {
+      return id == null || ref(c, id);
+    }
 
-    function validLead(d) {
-      return d.keys().hasAll(['name', 'stage', 'createdAt', 'updatedAt'])
-        && d.keys().hasOnly(['name', 'service', 'source', 'contact', 'stage', 'value', 'monthly',
-                             'branches', 'followUp', 'next', 'note', 'createdAt', 'updatedAt'])
+    // ---- services: jasa dan harga patokan ----
+
+    function validService(d) {
+      return d.keys().hasAll(['name', 'createdAt', 'updatedAt'])
+        && d.keys().hasOnly(['name', 'setup', 'setupNote', 'monthly', 'unit', 'dpPercent', 'extras',
+                             'includes', 'active', 'createdAt', 'updatedAt'])
         && requiredStr(d.name, 200)
-        && str(d.get('service', ''), 200)
-        && d.get('source', '') in ['', 'Threads', 'Instagram', 'WhatsApp', 'Email', 'Referral', 'Website', 'Lainnya']
-        && contactOrEmpty(d.get('contact', ''))
-        && d.stage in ['Baru', 'Menunggu kabar', 'Kirim harga', 'Demo', 'Nego', 'Deal', 'On hold', 'Tutup']
-        && moneyOrNull(d.get('value', null))
+        && moneyOrNull(d.get('setup', null))
+        && str(d.get('setupNote', ''), 200)
         && moneyOrNull(d.get('monthly', null))
-        && countOrNull(d.get('branches', null))
-        && dateOrEmpty(d.get('followUp', ''))
-        && str(d.get('next', ''), 1000)
-        && str(d.get('note', ''), 5000);
+        && str(d.get('unit', ''), 50)
+        && d.get('dpPercent', 50) is int && d.get('dpPercent', 50) >= 0 && d.get('dpPercent', 50) <= 100
+        && listMax(d.get('extras', []), 20)
+        && str(d.get('includes', ''), 5000)
+        && d.get('active', true) is bool;
     }
 
-    match /leads/{id} {
+    match /services/{id} {
       allow read, delete: if isOwner();
-      allow create: if isOwner() && validLead(request.resource.data) && stampsOnCreate(request.resource.data);
-      allow update: if isOwner() && validLead(request.resource.data) && stampsOnUpdate(request.resource.data);
+      allow create: if isOwner() && validService(request.resource.data) && stampsOnCreate(request.resource.data);
+      allow update: if isOwner() && validService(request.resource.data) && stampsOnUpdate(request.resource.data);
     }
 
-    // ---- projects ----
+    // ---- clients: siapa dan dari mana ----
+
+    function validClient(d) {
+      return d.keys().hasAll(['name', 'createdAt', 'updatedAt'])
+        && d.keys().hasOnly(['name', 'contact', 'phone', 'source', 'sourceNote', 'note', 'log',
+                             'createdAt', 'updatedAt'])
+        && requiredStr(d.name, 200)
+        && contactOrEmpty(d.get('contact', ''))
+        && phoneOrEmpty(d.get('phone', ''))
+        && d.get('source', '') in ['', 'Threads', 'Instagram', 'WhatsApp', 'Email', 'Referral', 'Website', 'Lainnya']
+        && str(d.get('sourceNote', ''), 200)
+        && str(d.get('note', ''), 5000)
+        && listMax(d.get('log', []), 200);
+    }
+
+    match /clients/{id} {
+      allow read, delete: if isOwner();
+      allow create: if isOwner() && validClient(request.resource.data) && stampsOnCreate(request.resource.data);
+      allow update: if isOwner() && validClient(request.resource.data) && stampsOnUpdate(request.resource.data);
+    }
+
+    // ---- projects: dari penawaran sampai live ----
+
+    // Tahap yang wajib punya nextDate (NEXT_REQUIRED_STAGES di src/domain/types.ts).
+    function needsNext(stage) {
+      return stage in ['Baru', 'Menunggu kabar', 'Kirim harga', 'Demo', 'Nego', 'Deal', 'Dikerjakan', 'Revisi', 'On hold'];
+    }
 
     function validProject(d) {
-      return d.keys().hasAll(['client', 'status', 'createdAt', 'updatedAt'])
-        && d.keys().hasOnly(['client', 'leadId', 'name', 'status', 'monthly', 'due', 'link', 'next',
+      return d.keys().hasAll(['clientId', 'stage', 'createdAt', 'updatedAt'])
+        && d.keys().hasOnly(['clientId', 'serviceId', 'name', 'stage', 'price', 'extras', 'qty', 'monthly',
+                             'next', 'nextDate', 'due', 'link', 'dealAt', 'liveAt', 'note',
                              'createdAt', 'updatedAt'])
-        && requiredStr(d.client, 200)
-        && idOrNull(d.get('leadId', null))
+        && ref('clients', d.clientId)
+        && refOrNull('services', d.get('serviceId', null))
         && str(d.get('name', ''), 200)
-        && d.status in ['Belum mulai', 'Dikerjakan', 'Revisi', 'Live', 'Maintenance', 'Selesai']
+        && d.stage in ['Baru', 'Menunggu kabar', 'Kirim harga', 'Demo', 'Nego', 'Deal', 'Dikerjakan', 'Revisi',
+                       'Live', 'Selesai', 'On hold', 'Batal']
+        && moneyOrNull(d.get('price', null))
+        && listMax(d.get('extras', []), 20)
+        && countOrNull(d.get('qty', null))
         && moneyOrNull(d.get('monthly', null))
+        && str(d.get('next', ''), 1000)
+        && dateOrEmpty(d.get('nextDate', ''))
+        && (!needsNext(d.stage) || d.get('nextDate', '') != '')
         && dateOrEmpty(d.get('due', ''))
         && urlOrEmpty(d.get('link', ''))
-        && str(d.get('next', ''), 1000);
+        && dateOrEmpty(d.get('dealAt', ''))
+        && dateOrEmpty(d.get('liveAt', ''))
+        && str(d.get('note', ''), 5000);
     }
 
     match /projects/{id} {
@@ -104,13 +155,14 @@ service cloud.firestore {
     // ---- payments ----
 
     function validPayment(d) {
-      return d.keys().hasAll(['client', 'type', 'amount', 'status', 'createdAt', 'updatedAt'])
-        && d.keys().hasOnly(['client', 'projectId', 'item', 'type', 'amount', 'due', 'status', 'paidAt',
-                             'createdAt', 'updatedAt'])
-        && requiredStr(d.client, 200)
-        && idOrNull(d.get('projectId', null))
-        && str(d.get('item', ''), 200)
+      return d.keys().hasAll(['clientId', 'type', 'amount', 'status', 'createdAt', 'updatedAt'])
+        && d.keys().hasOnly(['clientId', 'projectId', 'type', 'item', 'period', 'amount', 'due', 'status',
+                             'paidAt', 'createdAt', 'updatedAt'])
+        && ref('clients', d.clientId)
+        && refOrNull('projects', d.get('projectId', null))
         && d.type in ['DP', 'Pelunasan', 'Setup', 'Langganan', 'Lainnya']
+        && str(d.get('item', ''), 200)
+        && monthOrEmpty(d.get('period', ''))
         && positiveMoney(d.amount)
         && dateOrEmpty(d.get('due', ''))
         && d.status in ['Belum', 'Lunas']
@@ -126,11 +178,12 @@ service cloud.firestore {
     // ---- assets ----
 
     function validAsset(d) {
-      return d.keys().hasAll(['client', 'kind', 'createdAt', 'updatedAt'])
-        && d.keys().hasOnly(['client', 'item', 'kind', 'provider', 'cost', 'renewal', 'note',
+      return d.keys().hasAll(['item', 'kind', 'createdAt', 'updatedAt'])
+        && d.keys().hasOnly(['clientId', 'projectId', 'item', 'kind', 'provider', 'cost', 'renewal', 'note',
                              'createdAt', 'updatedAt'])
-        && requiredStr(d.client, 200)
-        && str(d.get('item', ''), 200)
+        && refOrNull('clients', d.get('clientId', null))
+        && refOrNull('projects', d.get('projectId', null))
+        && requiredStr(d.item, 200)
         && d.kind in ['Domain', 'Hosting', 'Firebase', 'Cloudflare', 'Lainnya']
         && str(d.get('provider', ''), 200)
         && moneyOrNull(d.get('cost', null))

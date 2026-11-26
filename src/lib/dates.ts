@@ -3,7 +3,7 @@
  * disimpan sebagai "YYYY-MM-DD". Semua hitungan memakai string itu, bukan
  * Date lokal perangkat, supaya laptop dengan zona waktu lain tetap benar.
  */
-import type { DateStr } from "../domain/types";
+import type { DateStr } from "../domain/types.ts";
 
 export const TIME_ZONE = "Asia/Makassar";
 
@@ -58,6 +58,28 @@ export function formatDate(s: DateStr): string {
 /** "YYYY-MM" dari tanggal, untuk mencocokkan bulan berjalan. */
 export function monthOf(s: DateStr): string {
   return s.slice(0, 7);
+}
+
+const daysInMonth = (y: number, m: number) => new Date(Date.UTC(y, m, 0)).getUTCDate();
+
+/** Tanggal `day` di bulan "YYYY-MM", dipotong ke akhir bulan (31 di Februari jadi 28 atau 29). */
+export function dateInMonth(month: string, day: number): DateStr {
+  const [y, m] = month.split("-").map(Number);
+  const d = Math.min(Math.max(1, day), daysInMonth(y, m));
+  return `${month}-${String(d).padStart(2, "0")}`;
+}
+
+/** Satu tahun kemudian; 29 Feb jadi 28 Feb bila tahun berikutnya bukan kabisat. */
+export function addYears(s: DateStr, years: number): DateStr {
+  toUtcMs(s);
+  const [y, m, d] = s.split("-").map(Number);
+  return dateInMonth(`${y + years}-${String(m).padStart(2, "0")}`, d);
+}
+
+/** "2026-12" jadi "Des 2026". */
+export function formatMonth(month: string): string {
+  const [y, m] = month.split("-").map(Number);
+  return `${MONTHS[m - 1]} ${y}`;
 }
 
 /** Label jarak hari untuk status: "Lewat 2 hari", "Hari ini", "Besok", "3 hari lagi". */

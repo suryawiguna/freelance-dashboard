@@ -1,7 +1,10 @@
 import { ExternalLink } from "lucide-react";
 import type { ReactNode } from "react";
-import { formatRupiah } from "../../lib/money";
+import { Badge, type Tone } from "../../components/Chip";
+import type { Stage } from "../../domain/types";
 import { cn } from "../../lib/cn";
+import { formatRupiah } from "../../lib/money";
+import { onNavClick } from "../../lib/route";
 
 /** Urutkan tanggal naik, kosong di belakang. */
 export function byDate(a: string, b: string): number {
@@ -67,6 +70,35 @@ export function LinkButton({
     >
       <ExternalLink size={18} aria-hidden />
       {!iconOnly && children}
+    </a>
+  );
+}
+
+const STAGE_TONE: Partial<Record<Stage, Tone>> = { Revisi: "near", Live: "ok" };
+
+/** Tahap proyek sebagai label. Netral kecuali Revisi (kuning) dan Live (hijau). */
+export function StageBadge({ stage }: { stage: Stage | null }) {
+  if (!stage) return <Badge tone="neutral">Belum ada proyek</Badge>;
+  return <Badge tone={STAGE_TONE[stage] ?? "neutral"}>{stage}</Badge>;
+}
+
+/** Harga proyek: "Rp1.400.000 + Rp290.000/bln". */
+export function PriceText({ price, monthly }: { price: number | null; monthly: number | null }) {
+  if (price === null && monthly === null) return <span className="text-gray-400">-</span>;
+  return (
+    <span className="tabular-nums">
+      {price !== null && <Money value={price} />}
+      {price !== null && monthly !== null && <span className="text-gray-500"> + </span>}
+      {monthly !== null && <Money value={monthly} suffix="/bln" />}
+    </span>
+  );
+}
+
+/** Link internal yang tetap bisa dibuka di tab baru. */
+export function NavLink({ to, children, className }: { to: string; children: ReactNode; className?: string }) {
+  return (
+    <a href={to} onClick={onNavClick(to)} className={className}>
+      {children}
     </a>
   );
 }

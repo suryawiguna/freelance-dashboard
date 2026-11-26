@@ -13,6 +13,7 @@ import {
   serverTimestamp,
   setDoc,
   updateDoc,
+  writeBatch,
   type FirestoreError,
 } from "firebase/firestore";
 import { normalize, type CollectionName, type Draft, type Records } from "../domain/records";
@@ -46,4 +47,33 @@ export function update<C extends CollectionName>(c: C, id: string, data: Partial
 
 export function remove(c: CollectionName, id: string): Promise<void> {
   return deleteDoc(doc(db, c, id));
+}
+
+export type BatchOp =
+  | { op: "create"; c: CollectionName; id: string; data: Record<string, unknown> }
+  | { op: "update"; c: CollectionName; id: string; data: Record<string, unknown> }
+  | { op: "delete"; c: CollectionName; id: string };
+
+/** Helper bertipe untuk menyusun BatchOp. */
+export const ops = {
+  create: <C extends CollectionName>(c: C, id: string, data: Draft<Records[C]>): BatchOp => ({ op: "create", c, id, data }),
+  update: <C extends CollectionName>(c: C, id: string, data: Partial<Draft<Records[C]>>): BatchOp => ({ op: "update", c, id, data }),
+  delete: (c: CollectionName, id: string): BatchOp => ({ op: "delete", c, id }),
+};
+
+/**
+ * Beberapa tulis sekaligus, semua atau tidak sama sekali: klien + proyek
+ * pertamanya, hapus klien beserta isinya, tagihan langganan sebulan.
+ * Induk harus ditulis sebelum anaknya di daftar (rules memakai existsAfter,
+ * jadi urutan di batch sebenarnya bebas, tetapi urutan ini lebih mudah dibaca).
+ */
+export function batch(list: readonly BatchOp[]): Promise<void> {
+  const b = writeBatch(db);
+  for (const o of list) {
+    const ref = doc(db, o.c, o.id);
+    if (o.op === "create") b.set(ref, { ...o.data, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+    else if (o.op === "update") b.update(ref, { ...o.data, updatedAt: serverTimestamp() });
+    else b.delete(ref);
+  }
+  return b.commit();
 }

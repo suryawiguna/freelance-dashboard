@@ -49,6 +49,46 @@ export function ChipGroup<T extends string>({
   );
 }
 
+/** Beberapa chip yang bisa aktif sekaligus (tambahan di proyek). */
+export function ChipToggleGroup({
+  options,
+  value,
+  onChange,
+  labelledBy,
+  describedBy,
+}: {
+  options: readonly { value: string; label: string }[];
+  value: readonly string[];
+  onChange: (v: string[]) => void;
+  labelledBy?: string;
+  describedBy?: string;
+}) {
+  if (options.length === 0) return <p className="text-gray-500">Tidak ada pilihan.</p>;
+  return (
+    <div role="group" aria-labelledby={labelledBy} aria-describedby={describedBy} className="flex flex-wrap gap-2">
+      {options.map((o) => {
+        const active = value.includes(o.value);
+        return (
+          <button
+            key={o.value}
+            type="button"
+            aria-pressed={active}
+            onClick={() => onChange(active ? value.filter((v) => v !== o.value) : [...value, o.value])}
+            className={cn(
+              "min-h-11 rounded-full border px-4 transition-colors",
+              active
+                ? "border-accent bg-accent-soft font-semibold text-accent"
+                : "border-gray-200 bg-surface text-gray-700 hover:bg-gray-50",
+            )}
+          >
+            {o.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export type Tone = "ok" | "near" | "late" | "neutral" | "accent";
 
 const TONES: Record<Tone, string> = {

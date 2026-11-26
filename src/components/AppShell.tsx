@@ -1,21 +1,21 @@
-import { Briefcase, CreditCard, LayoutDashboard, LogOut, Server, Users } from "lucide-react";
+import { CalendarCheck, LogOut, Tags, Users, Wallet } from "lucide-react";
 import type { ReactNode } from "react";
 import { useData } from "../data/DataContext";
 import { useConfirm } from "./ConfirmDialog";
 import { useAuth } from "../features/auth/AuthContext";
 import { cn } from "../lib/cn";
-import { navigate, ROUTES, type RoutePath } from "../lib/route";
+import { NAV, navOf, onNavClick, type NavPath, type Page } from "../lib/route";
 
-const ICONS: Record<RoutePath, typeof Users> = {
-  "/": LayoutDashboard,
-  "/lead": Users,
-  "/proyek": Briefcase,
-  "/tagihan": CreditCard,
-  "/aset": Server,
+const ICONS: Record<NavPath, typeof Users> = {
+  "/": CalendarCheck,
+  "/klien": Users,
+  "/uang": Wallet,
+  "/jasa": Tags,
 };
 
 /** Sidebar di desktop, bottom tab bar di HP (di bawah 640px). */
-export function AppShell({ route, children }: { route: RoutePath; children: ReactNode }) {
+export function AppShell({ page, children }: { page: Page; children: ReactNode }) {
+  const route = navOf(page);
   const { logout } = useAuth();
   const ask = useConfirm();
   const onLogout = async () => {
@@ -28,7 +28,7 @@ export function AppShell({ route, children }: { route: RoutePath; children: Reac
   };
   const { error } = useData();
 
-  const link = (path: RoutePath, label: string, compact: boolean) => {
+  const link = (path: NavPath, label: string, compact: boolean) => {
     const Icon = ICONS[path];
     const active = route === path;
     return (
@@ -36,11 +36,7 @@ export function AppShell({ route, children }: { route: RoutePath; children: Reac
         key={path}
         href={path}
         aria-current={active ? "page" : undefined}
-        onClick={(e) => {
-          if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
-          e.preventDefault();
-          navigate(path);
-        }}
+        onClick={onNavClick(path)}
         className={cn(
           "flex min-h-11 items-center rounded-card transition-colors",
           compact ? "flex-auto flex-col justify-center gap-1 px-1 py-1.5" : "gap-3 px-3",
@@ -59,7 +55,7 @@ export function AppShell({ route, children }: { route: RoutePath; children: Reac
     <div className="min-h-dvh sm:pl-60">
       <aside className="fixed inset-y-0 left-0 z-10 hidden w-60 flex-col overflow-y-auto border-r border-gray-200 bg-surface p-4 sm:flex">
         <p className="px-3 pb-6 pt-2 text-lg font-bold">Freelance</p>
-        <nav className="flex flex-1 flex-col gap-1">{ROUTES.map((r) => link(r.path, r.label, false))}</nav>
+        <nav className="flex flex-1 flex-col gap-1">{NAV.map((r) => link(r.path, r.label, false))}</nav>
         <button
           type="button"
           onClick={() => void onLogout()}
@@ -83,7 +79,7 @@ export function AppShell({ route, children }: { route: RoutePath; children: Reac
         className="fixed inset-x-0 bottom-0 z-10 flex border-t border-gray-200 bg-surface pt-2 sm:hidden"
         style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 0.5rem)" }}
       >
-        {ROUTES.map((r) => link(r.path, r.label, true))}
+        {NAV.map((r) => link(r.path, r.label, true))}
       </nav>
     </div>
   );

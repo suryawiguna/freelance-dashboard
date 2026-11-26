@@ -1,10 +1,10 @@
-import { ChipGroup } from "../../components/Chip";
+import { ChipGroup, ChipToggleGroup } from "../../components/Chip";
 import { DatePicker } from "../../components/DatePicker";
 import { Field, inputClass } from "../../components/Field";
 import { Select } from "../../components/Select";
 import { cn } from "../../lib/cn";
 import { parseRupiah } from "../../lib/money";
-import { formSections, moneyInput, type FieldDef, type FormValues } from "./formModel";
+import { formSections, joinMulti, moneyInput, resolveField, splitMulti, type FieldDef, type FormValues } from "./formModel";
 
 /**
  * Merender FieldDef jadi input, dikelompokkan per bagian berjudul dan dua
@@ -25,7 +25,10 @@ export function RecordForm({
 }) {
   return (
     <div className="divide-y divide-gray-200">
-      {formSections(fields, isNew).map((s) => (
+      {formSections(
+        fields.map((f) => resolveField(f, values)).filter((f) => !f.hidden),
+        isNew,
+      ).map((s) => (
         <section key={s.title} aria-label={s.title || undefined} className="py-5 first:pt-0 last:pb-0">
           {s.title && <h3 className="mb-4 text-lg font-bold text-gray-900">{s.title}</h3>}
           <div className="grid items-start gap-x-3 gap-y-4 sm:grid-cols-2">
@@ -45,6 +48,11 @@ export function RecordForm({
   );
 }
 
+const YES_NO = [
+  { value: "true", label: "Ya" },
+  { value: "false", label: "Tidak" },
+];
+
 function Input({
   def,
   value,
@@ -59,14 +67,26 @@ function Input({
   const common = { ...a11y, name: def.key, className: inputClass, placeholder: def.placeholder };
   switch (def.kind) {
     case "textarea":
-      return <textarea {...common} rows={4} value={value} onChange={(e) => onChange(e.target.value)} />;
+    case "pricelist":
+      return <textarea {...common} rows={def.kind === "pricelist" ? 3 : 4} value={value} onChange={(e) => onChange(e.target.value)} />;
+    case "multi":
+      return (
+        <ChipToggleGroup
+          labelledBy={`${a11y.id}-label`}
+          describedBy={a11y["aria-describedby"]}
+          options={def.options ?? []}
+          value={splitMulti(value)}
+          onChange={(v) => onChange(joinMulti(v))}
+        />
+      );
+    case "toggle":
     case "choice":
       return (
         <ChipGroup
           label={def.label}
           labelledBy={`${a11y.id}-label`}
           describedBy={a11y["aria-describedby"]}
-          options={def.options ?? []}
+          options={def.options ?? (def.kind === "toggle" ? YES_NO : [])}
           value={value}
           onChange={onChange}
         />
@@ -77,6 +97,8 @@ function Input({
       return <DatePicker {...a11y} value={value} onChange={onChange} />;
     case "contact":
       return <input {...common} type="text" inputMode="email" autoComplete="off" value={value} onChange={(e) => onChange(e.target.value)} />;
+    case "phone":
+      return <input {...common} type="tel" inputMode="tel" autoComplete="off" value={value} onChange={(e) => onChange(e.target.value)} />;
     case "url":
       return (
         <input

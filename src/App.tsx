@@ -4,36 +4,51 @@ import { DataProvider } from "./data/DataContext";
 import { useAuth } from "./features/auth/AuthContext";
 import { LoginPage } from "./features/auth/LoginPage";
 import { NoAccessPage } from "./features/auth/NoAccessPage";
-import { useRoute, type RoutePath } from "./lib/route";
+import { PanelHost } from "./features/panels/PanelHost";
+import { usePage, type Page } from "./lib/route";
 
-const PAGES: Record<RoutePath, ReturnType<typeof lazy>> = {
-  "/": lazy(() => import("./features/summary/SummaryPage")),
-  "/lead": lazy(() => import("./features/leads/LeadsPage")),
-  "/proyek": lazy(() => import("./features/projects/ProjectsPage")),
-  "/tagihan": lazy(() => import("./features/payments/PaymentsPage")),
-  "/aset": lazy(() => import("./features/assets/AssetsPage")),
-};
+const TodayPage = lazy(() => import("./features/today/TodayPage"));
+const ClientsPage = lazy(() => import("./features/clients/ClientsPage"));
+const ClientDetailPage = lazy(() => import("./features/clients/ClientDetailPage"));
+const MoneyPage = lazy(() => import("./features/money/MoneyPage"));
+const ServicesPage = lazy(() => import("./features/services/ServicesPage"));
+
+function Content({ page }: { page: Page }) {
+  switch (page.name) {
+    case "clients":
+      return <ClientsPage />;
+    case "client":
+      return <ClientDetailPage key={page.id} id={page.id} />;
+    case "bills":
+    case "assets":
+      return <MoneyPage tab={page.name} />;
+    case "services":
+      return <ServicesPage />;
+    default:
+      return <TodayPage />;
+  }
+}
 
 /**
- * Gerbang dan router saja. Tidak ada state bisnis di sini (PLAN §8):
- * data tiap koleksi dimuat di halamannya lewat data/repo.ts.
+ * Gerbang dan router saja. Tidak ada state bisnis di sini (PLAN §8): data
+ * dimuat sekali di DataProvider; panel edit dirender PanelHost dari URL.
  */
 export default function App() {
   const { loading, user, isOwner } = useAuth();
-  const route = useRoute();
+  const page = usePage();
 
   if (loading) return <div className="min-h-dvh" aria-busy="true" />;
   if (!user) return <LoginPage />;
   if (!isOwner) return <NoAccessPage />;
 
-  const Page = PAGES[route];
   return (
     <DataProvider>
-      <AppShell route={route}>
+      <AppShell page={page}>
         <Suspense fallback={null}>
-          <Page />
+          <Content page={page} />
         </Suspense>
       </AppShell>
+      <PanelHost />
     </DataProvider>
   );
 }
