@@ -49,7 +49,7 @@ Semua uang disimpan sebagai **integer rupiah**. Tanggal disimpan sebagai string 
 | service | string | contoh: "Kasir (2 cabang)", "Website" |
 | source | enum | Threads, Instagram, WhatsApp, Email, Referral, Website, Lainnya |
 | contact | string url | link DM Threads atau kontak lain; harus https |
-| stage | enum | Baru, Menunggu kabar, Kirim harga, Nego, Deal, On hold, Tutup |
+| stage | enum | Baru, Menunggu kabar, Kirim harga, Demo, Nego, Deal, On hold, Tutup |
 | value | int \| null | nilai setup / proyek |
 | monthly | int \| null | biaya bulanan (Rp145.000 × jumlah cabang untuk kasir) |
 | branches | int \| null | jumlah cabang, opsional; kalau diisi, `monthly` bisa dihitung otomatis |
@@ -57,7 +57,7 @@ Semua uang disimpan sebagai **integer rupiah**. Tanggal disimpan sebagai string 
 | next | string | langkah berikutnya |
 | note | string | catatan bebas |
 
-Lead **terbuka** = tahap Baru, Menunggu kabar, Kirim harga, atau Nego. "Menunggu kabar" dipakai setelah calon klien di-follow up dan belum membalas.
+Lead **terbuka** = tahap Baru, Menunggu kabar, Kirim harga, Demo, atau Nego. "Menunggu kabar" dipakai setelah calon klien di-follow up dan belum membalas.
 
 Saat lead pindah ke tahap Deal, tawarkan tombol "Jadikan proyek" yang membuat dokumen `projects` dengan klien, link, dan biaya bulanan yang sama.
 

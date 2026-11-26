@@ -21,6 +21,7 @@ const STAGE_TONE: Record<LeadStage, Tone> = {
   Baru: "neutral",
   "Menunggu kabar": "neutral",
   "Kirim harga": "neutral",
+  Demo: "neutral",
   Nego: "neutral",
   Deal: "ok",
   "On hold": "neutral",
@@ -102,7 +103,7 @@ export default function LeadsPage() {
       derive,
       filters: [
         {
-          // Baru, Menunggu kabar, Kirim harga, dan Nego digabung jadi "Terbuka"; tahapnya tetap
+          // Baru, Menunggu kabar, Kirim harga, Demo, dan Nego digabung jadi "Terbuka"; tahapnya tetap
           // terlihat di badge tiap baris.
           label: "Tahap",
           initial: "terbuka",
