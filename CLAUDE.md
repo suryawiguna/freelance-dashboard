@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Dashboard freelance pribadi Surya: lead, proyek, tagihan, aset. Satu pengguna. Rencana lengkap dan sumber kebenaran: [docs/PLAN.md](docs/PLAN.md).
+Dashboard freelance pribadi Surya: lead, proyek, tagihan, aset. Satu pengguna. Rencana lengkap dan sumber kebenaran: [docs/PLAN.md](docs/PLAN.md). Rencana berikutnya (belum dikerjakan): [docs/PLAN-KLIEN.md](docs/PLAN-KLIEN.md), struktur berpusat pada klien yang menggantikan model data dan halaman v1.
 
 Stack: React 19, Vite 6, TypeScript, Tailwind v4, Firebase (Auth Google, Firestore, Hosting) paket Spark, `vite-plugin-pwa` mode `prompt`, Vitest, emulator Firebase. Pola mengikuti repo `~/Documents/projects/kasir` (hanya dibaca).
 
